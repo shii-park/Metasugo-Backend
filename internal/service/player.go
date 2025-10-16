@@ -8,7 +8,14 @@ const (
 )
 
 type Player struct {
-	onTile   Tile
-	id       string
-	commands chan command
+	onTile  Tile
+	id      string
+	command chan command
+}
+
+func NewPlayer(id string) *Player {
+	return &Player{
+		id:      id,
+		command: make(chan command),
+	}
 }
