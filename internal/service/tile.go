@@ -1,6 +1,17 @@
 package sugoroku
 
-type TileKind int
+type TileKind string
+
+const (
+	profit         TileKind = "profit"
+	loss           TileKind = "loss"
+	quiz           TileKind = "quiz"
+	branch         TileKind = "branch"
+	overallEffect  TileKind = "overallEffect"
+	neighborEffect TileKind = "neighborEffect"
+	require        TileKind = "require"
+	gamble         TileKind = "gamnble"
+)
 
 type Tile struct {
 	prev   *Tile
