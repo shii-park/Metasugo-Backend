@@ -10,6 +10,7 @@ const (
 type Player struct {
 	onTile  Tile
 	id      string
+	money   int
 	command chan command
 }
 
