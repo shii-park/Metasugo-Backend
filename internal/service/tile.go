@@ -6,17 +6,17 @@ type Tile struct {
 	prev   *Tile
 	next   *Tile
 	kind   TileKind
-	ID     int
+	id     int
 	effect Effect
 }
 
 // TODO: 完全コンストラクタ化を行うべき
-func NewTile(prev *Tile, next *Tile, kind TileKind, ID int, effect Effect) *Tile {
+func NewTile(prev *Tile, next *Tile, kind TileKind, id int, effect Effect) *Tile {
 	return &Tile{
 		prev:   prev,
 		next:   next,
 		kind:   kind,
-		ID:     ID,
+		id:     id,
 		effect: effect,
 	}
 }
