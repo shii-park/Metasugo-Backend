@@ -8,7 +8,7 @@ const (
 )
 
 type Player struct {
-	onTile  Tile
+	onTile  *Tile
 	id      string
 	money   int
 	command chan command
@@ -18,5 +18,12 @@ func NewPlayer(id string) *Player {
 	return &Player{
 		id:      id,
 		command: make(chan command),
+	}
+}
+
+// TODO: エラー文の追加
+func (p *Player) moveNextTile() {
+	if p.onTile.next != nil {
+		p.onTile = p.onTile.next
 	}
 }
