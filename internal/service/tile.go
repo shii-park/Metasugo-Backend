@@ -19,15 +19,17 @@ type Tile struct {
 	kind   TileKind
 	id     int
 	effect Effect
+	detail string
 }
 
 // TODO: 完全コンストラクタ化を行うべき
-func NewTile(prev *Tile, next *Tile, kind TileKind, id int, effect Effect) *Tile {
+func NewTile(prev *Tile, next *Tile, kind TileKind, id int, effect Effect, detail string) *Tile {
 	return &Tile{
 		prev:   prev,
 		next:   next,
 		kind:   kind,
 		id:     id,
 		effect: effect,
+		detail: detail,
 	}
 }
