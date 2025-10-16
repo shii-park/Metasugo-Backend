@@ -27,3 +27,10 @@ func (p *Player) moveNextTile() {
 		p.onTile = p.onTile.next
 	}
 }
+
+// TODO: エラー文の追加
+func (p *Player) movePrevTile() {
+	if p.onTile.next != nil {
+		p.onTile = p.onTile.prev
+	}
+}
