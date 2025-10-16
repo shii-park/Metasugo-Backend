@@ -1,11 +1,12 @@
 package sugoroku
 
-type SpaceType int
+type TileKind int
 
 type Tile struct {
 	prev   *Tile
 	next   *Tile
-	Type   SpaceType
+	kind   TileKind
 	ID     int
 	effect Effect
 }
+
