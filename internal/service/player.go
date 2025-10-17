@@ -1,5 +1,7 @@
 package sugoroku
 
+import "errors"
+
 type command string
 
 const (
@@ -33,4 +35,12 @@ func (p *Player) movePrevTile() {
 	if p.onTile.next != nil {
 		p.onTile = p.onTile.prev
 	}
+}
+
+func (p *Player) addMoney(amount int) error {
+	if amount < 0 {
+		return errors.New("cannot add money by negative amount")
+	}
+	p.money += amount
+	return nil
 }
