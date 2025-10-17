@@ -25,10 +25,11 @@ type Player struct {
 //   \$$$$$$$  \$$$$$$  \$$   \$$ \$$$$$$$     \$$$$  \$$        \$$$$$$   \$$$$$$$    \$$$$   \$$$$$$  \$$
 //
 
-func NewPlayer(id string) *Player {
+func NewPlayer(id string, position *Tile) *Player {
 	return &Player{
-		id:      id,
-		command: make(chan command),
+		position: position,
+		id:       id,
+		command:  make(chan command),
 	}
 }
 
