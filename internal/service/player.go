@@ -1,7 +1,5 @@
 package sugoroku
 
-import "errors"
-
 type command string
 
 const (
@@ -10,10 +8,10 @@ const (
 )
 
 type Player struct {
-	onTile  *Tile
-	id      string
-	money   int
-	command chan command
+	position *Tile
+	id       string
+	money    int
+	command  chan command
 }
 
 //                                            __                                      __
@@ -25,7 +23,7 @@ type Player struct {
 // | $$_____ | $$__/ $$| $$  | $$ _\$$$$$$\  | $$|  \| $$      | $$__/ $$| $$_____   | $$|  \| $$__/ $$| $$
 //  \$$     \ \$$    $$| $$  | $$|       $$   \$$  $$| $$       \$$    $$ \$$     \   \$$  $$ \$$    $$| $$
 //   \$$$$$$$  \$$$$$$  \$$   \$$ \$$$$$$$     \$$$$  \$$        \$$$$$$   \$$$$$$$    \$$$$   \$$$$$$  \$$
-// 
+//
 
 func NewPlayer(id string) *Player {
 	return &Player{
@@ -47,30 +45,14 @@ func NewPlayer(id string) *Player {
 
 // TODO: エラー文の追加
 func (p *Player) moveNextTile() {
-	if p.onTile.next != nil {
-		p.onTile = p.onTile.next
+	if p.position.next != nil {
+		p.position = p.position.next
 	}
 }
 
 // TODO: エラー文の追加
 func (p *Player) movePrevTile() {
-	if p.onTile.next != nil {
-		p.onTile = p.onTile.prev
+	if p.position.next != nil {
+		p.position = p.position.prev
 	}
-}
-
-func (p *Player) addMoney(amount int) error {
-	if amount < 0 {
-		return errors.New("cannot add money by negative amount")
-	}
-	p.money += amount
-	return nil
-}
-
-func (p *Player) decreaseMoney(amount int) error {
-	if amount < 0 {
-		return errors.New("cannot add money by negative amount")
-	}
-	p.money -= amount
-	return nil
 }
