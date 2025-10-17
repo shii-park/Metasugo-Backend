@@ -1,6 +1,7 @@
 package sugoroku
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 )
@@ -68,4 +69,12 @@ func InitTiles() {
 		log.Fatalf("File open error: %v", err)
 	}
 	defer file.Close()
+
+	var tilesJSON []TileJSON
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&tilesJSON); err != nil {
+		log.Fatalf("JSON decode error: %v", err)
+	}
+
 }
