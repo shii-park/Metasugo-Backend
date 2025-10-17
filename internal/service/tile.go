@@ -26,7 +26,7 @@ type Tile struct {
 	next   *Tile
 	kind   TileKind
 	id     int
-	effect Effect
+	effect *Effect
 	detail string
 }
 
@@ -52,7 +52,7 @@ type TileJSON struct {
 //
 
 // TODO: 完全コンストラクタ化を行うべき
-func NewTile(prev *Tile, next *Tile, kind TileKind, id int, effect Effect, detail string) *Tile {
+func NewTile(prev *Tile, next *Tile, kind TileKind, id int, effect *Effect, detail string) *Tile {
 	return &Tile{
 		prev:   prev,
 		next:   next,
@@ -63,7 +63,7 @@ func NewTile(prev *Tile, next *Tile, kind TileKind, id int, effect Effect, detai
 	}
 }
 
-func InitTiles() {
+func InitTiles() []*Tile {
 	file, err := os.Open(TilesJSONPath)
 	if err != nil {
 		log.Fatalf("File open error: %v", err)
@@ -77,4 +77,24 @@ func InitTiles() {
 		log.Fatalf("JSON decode error: %v", err)
 	}
 
+	tileMap := make(map[int]*Tile)
+
+	tiles := make([]*Tile, 0, len(tilesJSON))
+
+	// タイルを生成(この時点ではタイル同士はつながっていない)
+	for _, tj := range tilesJSON {
+		// TODO エフェクトの記述をしないといけない
+		tile := NewTile(nil, nil, tj.Kind, tj.ID, nil, tj.Detail)
+		tileMap[tile.id] = tile
+		tiles = append(tiles, tile)
+	}
+
+	for _, tj := range tilesJSON {
+		currentTile := tileMap[tj.ID]
+
+		currentTile.prev = tileMap[tj.PrevID]
+		currentTile.next = tileMap[tj.NextID]
+	}
+
+	return tiles
 }
