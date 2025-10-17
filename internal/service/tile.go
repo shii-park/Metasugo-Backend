@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	profit         TileKind = "profit"
-	loss           TileKind = "loss"
-	quiz           TileKind = "quiz"
-	branch         TileKind = "branch"
-	overallEffect  TileKind = "overallEffect"
-	neighborEffect TileKind = "neighborEffect"
-	require        TileKind = "require"
-	gamble         TileKind = "gamnble"
+	profit   TileKind = "profit"
+	loss     TileKind = "loss"
+	quiz     TileKind = "quiz"
+	branch   TileKind = "branch"
+	overall  TileKind = "overallEffect"
+	neighbor TileKind = "neighborEffect"
+	require  TileKind = "require"
+	gamble   TileKind = "gamnble"
 )
 
 const TilesJSONPath = "../../tiles.json"
