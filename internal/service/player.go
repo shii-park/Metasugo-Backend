@@ -44,3 +44,11 @@ func (p *Player) addMoney(amount int) error {
 	p.money += amount
 	return nil
 }
+
+func (p *Player) decreaseMoney(amount int) error {
+	if amount < 0 {
+		return errors.New("cannot add money by negative amount")
+	}
+	p.money -= amount
+	return nil
+}
