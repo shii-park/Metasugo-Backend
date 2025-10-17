@@ -1,6 +1,9 @@
 package sugoroku
 
-type TileKind string
+import (
+	"log"
+	"os"
+)
 
 const (
 	profit         TileKind = "profit"
@@ -13,6 +16,10 @@ const (
 	gamble         TileKind = "gamnble"
 )
 
+const TilesJSONPath = "../../tiles.json"
+
+type TileKind string
+
 type Tile struct {
 	prev   *Tile
 	next   *Tile
@@ -20,6 +27,16 @@ type Tile struct {
 	id     int
 	effect Effect
 	detail string
+}
+
+// JSONの構造に対応した一時的な構造体
+type TileJSON struct {
+	ID     int      `json:"id"`
+	Kind   TileKind `json:"kind"`
+	Detail string   `json:"detail"`
+	Effect Effect   `json:"effect"`
+	PrevID int      `json:"prev_id"`
+	NextID int      `json:"next_id"`
 }
 
 // TODO: 完全コンストラクタ化を行うべき
@@ -32,4 +49,12 @@ func NewTile(prev *Tile, next *Tile, kind TileKind, id int, effect Effect, detai
 		effect: effect,
 		detail: detail,
 	}
+}
+
+func InitTiles() {
+	file, err := os.Open(TilesJSONPath)
+	if err != nil {
+		log.Fatalf("File open error: %v", err)
+	}
+	defer file.Close()
 }
