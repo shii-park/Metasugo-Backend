@@ -20,11 +20,11 @@ type Effect interface {
 //            \$$$$$$  \$$
 
 type ProfitEffect struct {
-	Amount int `json: "amount"`
+	Amount int `json:"amount"`
 }
 
 type LossEffect struct {
-	Amount int `json: "amount"`
+	Amount int `json:"amount"`
 }
 
 type QuizEffect struct {
@@ -32,15 +32,15 @@ type QuizEffect struct {
 }
 
 type OverallEffect struct {
-	Amount int `json: "amount"`
+	Amount int `json:"amount"`
 }
 
 type NeighborEffect struct {
-	Amount int `json: "amount"`
+	Amount int `json:"amount"`
 }
 
 type RequireEffect struct {
-	RequireValue int `json: "require_value"`
+	RequireValue int `json:"require_value"`
 }
 
 //  __       __             __      __                        __
