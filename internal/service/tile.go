@@ -101,8 +101,6 @@ func InitTilesFromPath(path string) (map[int]*Tile, error) {
 
 	tileMap := make(map[int]*Tile)
 
-	tiles := make([]*Tile, 0, len(tilesJSON))
-
 	// タイルを生成(この時点ではタイル同士はつながっていない)
 	for _, tj := range tilesJSON {
 		var effect Effect
@@ -166,7 +164,6 @@ func InitTilesFromPath(path string) (map[int]*Tile, error) {
 		}
 		tile := NewTile(nil, nil, tj.Kind, tj.ID, effect, tj.Detail)
 		tileMap[tile.id] = tile
-		tiles = append(tiles, tile)
 	}
 
 	for _, tj := range tilesJSON {
