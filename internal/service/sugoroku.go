@@ -58,3 +58,15 @@ func (g *Game) AddPlayer(id string) (*Player, error) {
 
 	return player, nil
 }
+
+func (g *Game) GetPlayers() []*Player {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
+	playerList := make([]*Player, 0, len(g.players))
+
+	for _, player := range g.players {
+		playerList = append(playerList, player)
+	}
+	return playerList
+}
