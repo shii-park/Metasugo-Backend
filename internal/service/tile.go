@@ -77,15 +77,15 @@ func NewTile(prev *Tile, next *Tile, kind TileKind, id int, effect Effect, detai
 // |   $$ \| $$  | $$| $$   \$$  $$| $$ \$$    $$| $$| $$|  $$    \ \$$     \
 //  \$$$$$$ \$$   \$$ \$$    \$$$$  \$$  \$$$$$$$ \$$ \$$ \$$$$$$$$  \$$$$$$$
 
-func InitTiles() []*Tile {
-	tiles, err := InitTilesFromPath(TilesJSONPath)
+func InitTiles() map[int]*Tile {
+	tileMap, err := InitTilesFromPath(TilesJSONPath)
 	if err != nil {
 		panic(fmt.Sprintf("failed to initialize tiles: %v", err))
 	}
-	return tiles
+	return tileMap
 }
 
-func InitTilesFromPath(path string) ([]*Tile, error) {
+func InitTilesFromPath(path string) (map[int]*Tile, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("file open error: %w", err)
@@ -176,5 +176,5 @@ func InitTilesFromPath(path string) ([]*Tile, error) {
 		currentTile.next = tileMap[tj.NextID]
 	}
 
-	return tiles, nil
+	return tileMap, nil
 }
