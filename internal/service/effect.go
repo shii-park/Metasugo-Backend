@@ -71,7 +71,7 @@ func (e ProfitEffect) Apply(p *Player) error {
 
 func (e LossEffect) Apply(p *Player) error {
 	if e.Amount < 0 {
-		return errors.New("cannot decreace money by negative amount")
+		return errors.New("cannot decrease money by negative amount")
 	}
 	p.money -= e.Amount
 	return nil
