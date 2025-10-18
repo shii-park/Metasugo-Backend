@@ -53,7 +53,7 @@ func (p *Player) moveNextTile() {
 
 // TODO: エラー文の追加
 func (p *Player) movePrevTile() {
-	if p.position.next != nil {
+	if p.position.prev != nil {
 		p.position = p.position.prev
 	}
 }
