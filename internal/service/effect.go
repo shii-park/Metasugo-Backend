@@ -3,7 +3,7 @@ package sugoroku
 import "errors"
 
 type Effect interface {
-	Apply(player *Player)
+	Apply(player *Player) error
 }
 
 //  ________                                     __             ______
