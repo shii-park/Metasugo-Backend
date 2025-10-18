@@ -31,6 +31,11 @@ type QuizEffect struct {
 	QuizID int `json:"quiz_id"`
 }
 
+// TODO 一時的な型の実装をしている。　また変更するかも
+type BranchEffect struct {
+	ChoseID int `json:"chose_id"`
+}
+
 type OverallEffect struct {
 	Amount int `json:"amount"`
 }
@@ -41,6 +46,9 @@ type NeighborEffect struct {
 
 type RequireEffect struct {
 	RequireValue int `json:"require_value"`
+}
+
+type GambleEffect struct {
 }
 
 //  __       __             __      __                        __
@@ -76,6 +84,11 @@ func (e QuizEffect) Apply(p *Player) error {
 }
 
 // TODO効果の実装
+func (e BranchEffect) Apply(p *Player) error {
+	return nil
+}
+
+// TODO効果の実装
 func (e OverallEffect) Apply(p *Player) error {
 
 	return nil
@@ -90,5 +103,9 @@ func (e NeighborEffect) Apply(p *Player) error {
 // TODO効果の実装
 func (e RequireEffect) Apply(p *Player) error {
 
+	return nil
+}
+
+func (e GambleEffect) Apply(p *Player) error {
 	return nil
 }
