@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	game := sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
+	sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
 }
