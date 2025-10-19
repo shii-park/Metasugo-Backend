@@ -57,3 +57,9 @@ func (p *Player) movePrevTile() {
 		p.position = p.position.prev
 	}
 }
+
+func (p *Player) MoveByDiceRoll(steps int) {
+	for i := 0; i < steps; i++ {
+		p.moveNextTile()
+	}
+}
