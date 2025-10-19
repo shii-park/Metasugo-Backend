@@ -17,7 +17,7 @@ const (
 	gamble   TileKind = "gamble"
 )
 
-const TilesJSONPath = "../../tiles.json"
+const TilesJSONPath = "./tiles.json"
 
 type TileKind string
 
