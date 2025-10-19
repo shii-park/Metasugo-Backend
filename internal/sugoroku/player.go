@@ -54,4 +54,5 @@ func (p *Player) MoveByDiceRoll(steps int) {
 	for i := 0; i < steps; i++ {
 		p.moveNextTile()
 	}
+	p.position.effect.Apply(p)
 }
