@@ -1,17 +1,9 @@
 package sugoroku
 
-type command string
-
-const (
-	next command = "next"
-	prev command = "prev"
-)
-
 type Player struct {
 	position *Tile
 	id       string
 	money    int
-	command  chan command
 }
 
 //                                            __                                      __
@@ -29,21 +21,21 @@ func NewPlayer(id string, position *Tile) *Player {
 	return &Player{
 		position: position,
 		id:       id,
-		command:  make(chan command),
 	}
 }
 
-//                           __      __                        __
-//                          |  \    |  \                      |  \
-//  ______ ____    ______  _| $$_   | $$____    ______    ____| $$  _______
+//	                         __      __                        __
+//	                        |  \    |  \                      |  \
+//	______ ____    ______  _| $$_   | $$____    ______    ____| $$  _______
+//
 // |      \    \  /      \|   $$ \  | $$    \  /      \  /      $$ /       \
 // | $$$$$$\$$$$\|  $$$$$$\\$$$$$$  | $$$$$$$\|  $$$$$$\|  $$$$$$$|  $$$$$$$
 // | $$ | $$ | $$| $$    $$ | $$ __ | $$  | $$| $$  | $$| $$  | $$ \$$    \
 // | $$ | $$ | $$| $$$$$$$$ | $$|  \| $$  | $$| $$__/ $$| $$__| $$ _\$$$$$$\
 // | $$ | $$ | $$ \$$     \  \$$  $$| $$  | $$ \$$    $$ \$$    $$|       $$
-//  \$$  \$$  \$$  \$$$$$$$   \$$$$  \$$   \$$  \$$$$$$   \$$$$$$$ \$$$$$$$
 //
-
+//	\$$  \$$  \$$  \$$$$$$$   \$$$$  \$$   \$$  \$$$$$$   \$$$$$$$ \$$$$$$$
+//
 // TODO: エラー文の追加
 func (p *Player) moveNextTile() {
 	if p.position.next != nil {
