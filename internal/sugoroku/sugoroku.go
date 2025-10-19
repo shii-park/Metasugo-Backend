@@ -1,17 +1,17 @@
 package sugoroku
 
-type command string
-
-const (
-	next command = "next"
-	prev command = "prev"
+import (
+	"fmt"
+	"sync"
 )
 
-type Player struct {
-	position *Tile
-	id       string
-	money    int
-	command  chan command
+const InitialTileID = 1
+
+type Game struct {
+	players map[string]*Player
+	tileMap map[int]*Tile
+
+	mu sync.RWMutex
 }
 
 //                                            __                                      __
@@ -25,11 +25,12 @@ type Player struct {
 //   \$$$$$$$  \$$$$$$  \$$   \$$ \$$$$$$$     \$$$$  \$$        \$$$$$$   \$$$$$$$    \$$$$   \$$$$$$  \$$
 //
 
-func NewPlayer(id string, position *Tile) *Player {
-	return &Player{
-		position: position,
-		id:       id,
-		command:  make(chan command),
+func NewGame() *Game {
+	tileMap := InitTiles()
+
+	return &Game{
+		tileMap: tileMap,
+		players: make(map[string]*Player),
 	}
 }
 
@@ -44,16 +45,28 @@ func NewPlayer(id string, position *Tile) *Player {
 //  \$$  \$$  \$$  \$$$$$$$   \$$$$  \$$   \$$  \$$$$$$   \$$$$$$$ \$$$$$$$
 //
 
-// TODO: エラー文の追加
-func (p *Player) moveNextTile() {
-	if p.position.next != nil {
-		p.position = p.position.next
+func (g *Game) AddPlayer(id string) (*Player, error) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if _, exists := g.players[id]; exists {
+		return nil, fmt.Errorf("player with id %s already exists", id)
 	}
+
+	player := NewPlayer(id, g.tileMap[InitialTileID])
+	g.players[id] = player
+
+	return player, nil
 }
 
-// TODO: エラー文の追加
-func (p *Player) movePrevTile() {
-	if p.position.prev != nil {
-		p.position = p.position.prev
+func (g *Game) GetPlayers() []*Player {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+
+	playerList := make([]*Player, 0, len(g.players))
+
+	for _, player := range g.players {
+		playerList = append(playerList, player)
 	}
+	return playerList
 }

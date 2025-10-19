@@ -17,7 +17,7 @@ const (
 	gamble   TileKind = "gamble"
 )
 
-const TilesJSONPath = "../../tiles.json"
+const TilesJSONPath = "./tiles.json"
 
 type TileKind string
 
@@ -77,15 +77,15 @@ func NewTile(prev *Tile, next *Tile, kind TileKind, id int, effect Effect, detai
 // |   $$ \| $$  | $$| $$   \$$  $$| $$ \$$    $$| $$| $$|  $$    \ \$$     \
 //  \$$$$$$ \$$   \$$ \$$    \$$$$  \$$  \$$$$$$$ \$$ \$$ \$$$$$$$$  \$$$$$$$
 
-func InitTiles() []*Tile {
-	tiles, err := InitTilesFromPath(TilesJSONPath)
+func InitTiles() map[int]*Tile {
+	tileMap, err := InitTilesFromPath(TilesJSONPath)
 	if err != nil {
 		panic(fmt.Sprintf("failed to initialize tiles: %v", err))
 	}
-	return tiles
+	return tileMap
 }
 
-func InitTilesFromPath(path string) ([]*Tile, error) {
+func InitTilesFromPath(path string) (map[int]*Tile, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("file open error: %w", err)
@@ -100,8 +100,6 @@ func InitTilesFromPath(path string) ([]*Tile, error) {
 	}
 
 	tileMap := make(map[int]*Tile)
-
-	tiles := make([]*Tile, 0, len(tilesJSON))
 
 	// タイルを生成(この時点ではタイル同士はつながっていない)
 	for _, tj := range tilesJSON {
@@ -166,7 +164,6 @@ func InitTilesFromPath(path string) ([]*Tile, error) {
 		}
 		tile := NewTile(nil, nil, tj.Kind, tj.ID, effect, tj.Detail)
 		tileMap[tile.id] = tile
-		tiles = append(tiles, tile)
 	}
 
 	for _, tj := range tilesJSON {
@@ -176,5 +173,5 @@ func InitTilesFromPath(path string) ([]*Tile, error) {
 		currentTile.next = tileMap[tj.NextID]
 	}
 
-	return tiles, nil
+	return tileMap, nil
 }
