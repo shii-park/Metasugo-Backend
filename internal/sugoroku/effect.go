@@ -1,7 +1,7 @@
 package sugoroku
 
 type Effect interface {
-	Apply(player *Player) error
+	Apply(player *Player, game *Game) error
 }
 
 //  ________                                     __             ______
@@ -35,8 +35,8 @@ type BranchEffect struct {
 }
 
 type OverallEffect struct {
-	Profit int `json:"profit_amount"`
-	Loss   int `json:"loss_amount"`
+	ProfitAmount int `json:"profit_amount"`
+	LossAmount   int `json:"loss_amount"`
 }
 
 type NeighborEffect struct {
@@ -60,45 +60,47 @@ type GambleEffect struct {
 // | $$  \$ | $$ \$$     \  \$$  $$| $$  | $$ \$$    $$ \$$    $$|       $$
 //  \$$      \$$  \$$$$$$$   \$$$$  \$$   \$$  \$$$$$$   \$$$$$$$ \$$$$$$$
 
-func (e ProfitEffect) Apply(p *Player) error {
+func (e ProfitEffect) Apply(p *Player, g *Game) error {
 	err := p.Profit(e.Amount)
 	return err
 }
 
-func (e LossEffect) Apply(p *Player) error {
+func (e LossEffect) Apply(p *Player, g *Game) error {
 	err := p.Loss(e.Amount)
 	return err
 }
 
 // TODO効果の実装
-func (e QuizEffect) Apply(p *Player) error {
+func (e QuizEffect) Apply(p *Player, g *Game) error {
 
 	return nil
 }
 
 // TODO効果の実装
-func (e BranchEffect) Apply(p *Player) error {
+func (e BranchEffect) Apply(p *Player, g *Game) error {
 	return nil
 }
 
 // TODO効果の実装
-func (e OverallEffect) Apply(p *Player) error {
+func (e OverallEffect) Apply(p *Player, game *Game) error {
+	if e.ProfitAmount > 0 {
+		game.GetPlayers()
+	}
+	return nil
+}
+
+// TODO効果の実装
+func (e NeighborEffect) Apply(p *Player, g *Game) error {
 
 	return nil
 }
 
 // TODO効果の実装
-func (e NeighborEffect) Apply(p *Player) error {
+func (e RequireEffect) Apply(p *Player, g *Game) error {
 
 	return nil
 }
 
-// TODO効果の実装
-func (e RequireEffect) Apply(p *Player) error {
-
-	return nil
-}
-
-func (e GambleEffect) Apply(p *Player) error {
+func (e GambleEffect) Apply(p *Player, g *Game) error {
 	return nil
 }
