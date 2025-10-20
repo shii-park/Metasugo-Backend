@@ -1,7 +1,5 @@
 package sugoroku
 
-import "errors"
-
 type Effect interface {
 	Apply(player *Player) error
 }
@@ -37,7 +35,8 @@ type BranchEffect struct {
 }
 
 type OverallEffect struct {
-	Amount int `json:"amount"`
+	Profit int `json:"profit_amount"`
+	Loss   int `json:"loss_amount"`
 }
 
 type NeighborEffect struct {
@@ -62,23 +61,13 @@ type GambleEffect struct {
 //  \$$      \$$  \$$$$$$$   \$$$$  \$$   \$$  \$$$$$$   \$$$$$$$ \$$$$$$$
 
 func (e ProfitEffect) Apply(p *Player) error {
-	if e.Amount < 0 {
-		return errors.New("cannot add money by negative amount")
-	}
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.money += e.Amount
-	return nil
+	err := p.Profit(e.Amount)
+	return err
 }
 
 func (e LossEffect) Apply(p *Player) error {
-	if e.Amount < 0 {
-		return errors.New("cannot decrease money by negative amount")
-	}
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.money -= e.Amount
-	return nil
+	err := p.Loss(e.Amount)
+	return err
 }
 
 // TODO効果の実装
