@@ -81,3 +81,25 @@ func (p *Player) Loss(amount int) error {
 	p.money -= amount
 	return nil
 }
+
+func ProfitForTargetPlayers(players []*Player, amount int) error {
+	if amount < 0 {
+		return errors.New("cannot add money by negative amount")
+	} else if len(players) < 0 {
+		return errors.New("there is no target players")
+	}
+	for _, p := range players {
+		p.Profit(amount)
+	}
+	return nil
+}
+
+func LossForTargetPlayers(players []*Player, amount int) error {
+	if amount < 0 {
+		return errors.New("cannot decrease money by negative amount")
+	}
+	for _, p := range players {
+		p.Loss(amount)
+	}
+	return nil
+}
