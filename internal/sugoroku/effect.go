@@ -1,10 +1,20 @@
 package sugoroku
 
-import "errors"
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+)
 
 type Effect interface {
 	Apply(player *Player, game *Game) error
 }
+
+const QuizJSONPath = "./quizzes.json"
+
+// グローバル変数にキャッシュしておく
+var quizzes []Quiz
 
 //  ________                                     __             ______
 // |        \                                   |  \           /      \
@@ -29,6 +39,7 @@ type LossEffect struct {
 
 type QuizEffect struct {
 	QuizID int `json:"quiz_id"`
+	Amount int `json:"amount"`
 }
 
 // TODO 一時的な型の実装をしている。　また変更するかも
@@ -48,9 +59,18 @@ type NeighborEffect struct {
 
 type RequireEffect struct {
 	RequireValue int `json:"require_value"`
+	Amount       int `json:"amount"`
 }
 
 type GambleEffect struct {
+}
+
+type Quiz struct {
+	ID                int      `json:"id"`
+	Question          string   `json:"question"`
+	Options           []string `json:"options"`
+	AnswerIndex       int      `json:"answerIndex"`
+	AnswerDescription string   `json:"answer_description"`
 }
 
 //  __       __             __      __                        __
@@ -129,5 +149,19 @@ func (e RequireEffect) Apply(p *Player, g *Game) error {
 }
 
 func (e GambleEffect) Apply(p *Player, g *Game) error {
+	return nil
+}
+
+func InitQuiz() error {
+	file, err := os.Open(QuizJSONPath)
+	if err != nil {
+		return fmt.Errorf("file open error: %w", err)
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&quizzes); err != nil {
+		return fmt.Errorf("JSON decode error: %w", err)
+	}
 	return nil
 }

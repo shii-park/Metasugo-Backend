@@ -27,7 +27,7 @@ type Game struct {
 
 func NewGame() *Game {
 	tileMap := InitTiles()
-
+	InitQuiz()
 	return &Game{
 		tileMap: tileMap,
 		players: make(map[string]*Player),
