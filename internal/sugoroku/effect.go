@@ -83,8 +83,16 @@ func (e BranchEffect) Apply(p *Player, g *Game) error {
 
 // TODO効果の実装
 func (e OverallEffect) Apply(p *Player, game *Game) error {
+	players := game.GetPlayers()
+
 	if e.ProfitAmount > 0 {
-		game.GetPlayers()
+		for _, p := range players {
+			p.Profit(e.ProfitAmount)
+		}
+	} else if e.LossAmount > 0 {
+		for _, p := range players {
+			p.Loss(e.ProfitAmount)
+		}
 	}
 	return nil
 }
