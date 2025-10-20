@@ -1,5 +1,7 @@
 package sugoroku
 
+import "errors"
+
 type Effect interface {
 	Apply(player *Player, game *Game) error
 }
@@ -93,6 +95,8 @@ func (e OverallEffect) Apply(p *Player, game *Game) error {
 		for _, p := range players {
 			p.Loss(e.ProfitAmount)
 		}
+	} else {
+		return errors.New("invalid amount for overall effect")
 	}
 	return nil
 }
