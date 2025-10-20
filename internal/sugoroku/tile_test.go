@@ -22,14 +22,13 @@ func TestNewTile(t *testing.T) {
 	}
 }
 
-// TestInitTilesFromPath_HappyPath tests the successful execution, including tile linking.
 func TestInitTilesFromPath_HappyPath(t *testing.T) {
 	const testJSON = `[
-		{"id": 1, "kind": "profit", "detail": "Start", "prev_id": 0, "next_id": 2},
-		{"id": 2, "kind": "loss", "detail": "Middle", "prev_id": 1, "next_id": 3},
-		{"id": 3, "kind": "quiz", "detail": "End", "prev_id": 2, "next_id": 0}
+		{"id": 1, "kind": "profit", "detail": "Start", "prev_ids": [], "next_ids": [2]},
+		{"id": 2, "kind": "loss", "detail": "Middle", "prev_ids": [1], "next_ids": [3]},
+		{"id": 3, "kind": "quiz", "detail": "End", "prev_ids": [2], "next_ids": []}
 	]`
-	tmpFile := createTestFile(t, "happy_path_*.json", testJSON)
+	tmpFile := CreateTestFile(t, "happy_path_*.json", testJSON)
 	defer os.Remove(tmpFile)
 
 	tiles, err := InitTilesFromPath(tmpFile)
@@ -54,25 +53,25 @@ func TestInitTilesFromPath_HappyPath(t *testing.T) {
 	}
 
 	// Check links
-	if tile1.prev != nil {
-		t.Errorf("Expected tile 1 prev to be nil, got tile id %d", tile1.prev.id)
+	if len(tile1.prevs) != 0 {
+		t.Errorf("Expected tile 1 to have 0 prevs, got %d", len(tile1.prevs))
 	}
-	if tile1.next != tile2 {
-		t.Errorf("Expected tile 1 next to be tile 2, but it was not")
-	}
-
-	if tile2.prev != tile1 {
-		t.Errorf("Expected tile 2 prev to be tile 1, but it was not")
-	}
-	if tile2.next != tile3 {
-		t.Errorf("Expected tile 2 next to be tile 3, but it was not")
+	if len(tile1.nexts) != 1 || tile1.nexts[0] != tile2 {
+		t.Errorf("Expected tile 1 next to be [tile 2], but it was not")
 	}
 
-	if tile3.prev != tile2 {
-		t.Errorf("Expected tile 3 prev to be tile 2, but it was not")
+	if len(tile2.prevs) != 1 || tile2.prevs[0] != tile1 {
+		t.Errorf("Expected tile 2 prev to be [tile 1], but it was not")
 	}
-	if tile3.next != nil {
-		t.Errorf("Expected tile 3 next to be nil, got tile id %d", tile3.next.id)
+	if len(tile2.nexts) != 1 || tile2.nexts[0] != tile3 {
+		t.Errorf("Expected tile 2 next to be [tile 3], but it was not")
+	}
+
+	if len(tile3.prevs) != 1 || tile3.prevs[0] != tile2 {
+		t.Errorf("Expected tile 3 prev to be [tile 2], but it was not")
+	}
+	if len(tile3.nexts) != 0 {
+		t.Errorf("Expected tile 3 to have 0 nexts, got %d", len(tile3.nexts))
 	}
 }
 
@@ -90,7 +89,7 @@ func TestInitTilesFromPath_FileNotFound(t *testing.T) {
 // TestInitTilesFromPath_InvalidJSON tests the error case where the JSON file is malformed.
 func TestInitTilesFromPath_InvalidJSON(t *testing.T) {
 	const invalidJSON = `[{"id": 1, "kind": "profit"` // Malformed JSON
-	tmpFile := createTestFile(t, "invalid_json_*.json", invalidJSON)
+	tmpFile := CreateTestFile(t, "invalid_json_*.json", invalidJSON)
 	defer os.Remove(tmpFile)
 
 	_, err := InitTilesFromPath(tmpFile)
@@ -106,7 +105,7 @@ func TestInitTilesFromPath_InvalidJSON(t *testing.T) {
 func TestInitTilesFromPath_InvalidEffect(t *testing.T) {
 	// Effect is missing the 'type' field
 	const invalidEffectJSON = `[{"id": 1, "kind": "profit", "effect": {"amount": 10}}]`
-	tmpFile := createTestFile(t, "invalid_effect_*.json", invalidEffectJSON)
+	tmpFile := CreateTestFile(t, "invalid_effect_*.json", invalidEffectJSON)
 	defer os.Remove(tmpFile)
 
 	_, err := InitTilesFromPath(tmpFile)
@@ -121,18 +120,18 @@ func TestInitTilesFromPath_InvalidEffect(t *testing.T) {
 // TestInitTilesFromPath_AllCases covers all tile kinds and their linking.
 func TestInitTilesFromPath_AllCases(t *testing.T) {
 	const allCasesJSON = `[
-		{"id": 1, "kind": "profit", "effect": {"type": "profit", "amount": 10}, "prev_id": 0, "next_id": 2},
-		{"id": 2, "kind": "loss", "effect": {"type": "loss", "amount": 5}, "prev_id": 1, "next_id": 3},
-		{"id": 3, "kind": "quiz", "effect": {"type": "quiz", "quiz_id": 1}, "prev_id": 2, "next_id": 4},
-		{"id": 4, "kind": "branch", "effect": {"type": "branch", "chose_id": 2}, "prev_id": 3, "next_id": 5},
-		{"id": 5, "kind": "overall", "effect": {"type": "overall", "amount": 1}, "prev_id": 4, "next_id": 6},
-		{"id": 6, "kind": "neighbor", "effect": {"type": "neighbor", "amount": 2}, "prev_id": 5, "next_id": 7},
-		{"id": 7, "kind": "require", "effect": {"type": "require", "require_value": 3}, "prev_id": 6, "next_id": 8},
-		{"id": 8, "kind": "gamble", "effect": {"type": "gamble"}, "prev_id": 7, "next_id": 9},
-		{"id": 9, "kind": "unknown", "effect": {"type": "unknown"}, "prev_id": 8, "next_id": 10},
-		{"id": 10, "kind": "none", "effect": null, "prev_id": 9, "next_id": 0}
+		{"id": 1, "kind": "profit", "effect": {"type": "profit", "amount": 10}, "prev_ids": [], "next_ids": [2]},
+		{"id": 2, "kind": "loss", "effect": {"type": "loss", "amount": 5}, "prev_ids": [1], "next_ids": [3]},
+		{"id": 3, "kind": "quiz", "effect": {"type": "quiz", "quiz_id": 1}, "prev_ids": [2], "next_ids": [4]},
+		{"id": 4, "kind": "branch", "effect": {"type": "branch", "chose_id": 2}, "prev_ids": [3], "next_ids": [5, 6]},
+		{"id": 5, "kind": "overall", "effect": {"type": "overall", "amount": 1}, "prev_ids": [4], "next_ids": [7]},
+		{"id": 6, "kind": "neighbor", "effect": {"type": "neighbor", "amount": 2}, "prev_ids": [4], "next_ids": [7]},
+		{"id": 7, "kind": "require", "effect": {"type": "require", "require_value": 3}, "prev_ids": [5, 6], "next_ids": [8]},
+		{"id": 8, "kind": "gamble", "effect": {"type": "gamble"}, "prev_ids": [7], "next_ids": [9]},
+		{"id": 9, "kind": "unknown", "effect": {"type": "unknown"}, "prev_ids": [8], "next_ids": [10]},
+		{"id": 10, "kind": "none", "effect": null, "prev_ids": [9], "next_ids": []}
 	]`
-	tmpFile := createTestFile(t, "all_cases_*.json", allCasesJSON)
+	tmpFile := CreateTestFile(t, "all_cases_*.json", allCasesJSON)
 	defer os.Remove(tmpFile)
 
 	tiles, err := InitTilesFromPath(tmpFile)
@@ -165,27 +164,24 @@ func TestInitTilesFromPath_AllCases(t *testing.T) {
 	}
 
 	// Check links
-	if tileMap[1].prev != nil {
-		t.Error("Expected tile 1 prev to be nil")
+	if len(tileMap[1].prevs) != 0 {
+		t.Error("Expected tile 1 prevs to be empty")
 	}
-	if tileMap[10].next != nil {
-		t.Error("Expected tile 10 next to be nil")
+	if len(tileMap[10].nexts) != 0 {
+		t.Error("Expected tile 10 nexts to be empty")
 	}
 
-	for i := 1; i < 10; i++ {
-		currentTile := tileMap[i]
-		nextTile := tileMap[i+1]
-		if currentTile.next != nextTile {
-			t.Errorf("Expected tile %d next to be tile %d, but it was not", i, i+1)
-		}
-		if nextTile.prev != currentTile {
-			t.Errorf("Expected tile %d prev to be tile %d, but it was not", i+1, i)
-		}
+	// Check branching and merging
+	if len(tileMap[4].nexts) != 2 || (tileMap[4].nexts[0] != tileMap[5] && tileMap[4].nexts[1] != tileMap[5]) || (tileMap[4].nexts[0] != tileMap[6] && tileMap[4].nexts[1] != tileMap[6]) {
+		t.Errorf("Expected tile 4 to branch to tiles 5 and 6")
+	}
+	if len(tileMap[7].prevs) != 2 || (tileMap[7].prevs[0] != tileMap[5] && tileMap[7].prevs[1] != tileMap[5]) || (tileMap[7].prevs[0] != tileMap[6] && tileMap[7].prevs[1] != tileMap[6]) {
+		t.Errorf("Expected tile 7 to merge from tiles 5 and 6")
 	}
 }
 
-// createTestFile is a helper function to create a temporary file with given content for testing.
-func createTestFile(t *testing.T, pattern, content string) string {
+// CreateTestFile is a helper function to create a temporary file with given content for testing.
+func CreateTestFile(t *testing.T, pattern, content string) string {
 	t.Helper()
 	tmpFile, err := os.CreateTemp("", pattern)
 	if err != nil {
