@@ -1,6 +1,9 @@
 package sugoroku
 
-import "sync"
+import (
+	"errors"
+	"sync"
+)
 
 type Player struct {
 	position *Tile
@@ -57,4 +60,24 @@ func (p *Player) MoveByDiceRoll(steps int) {
 	for i := 0; i < steps; i++ {
 		p.moveNextTile()
 	}
+}
+
+func (p *Player) Profit(amount int) error {
+	if amount < 0 {
+		return errors.New("cannot add money by negative amount")
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.money += amount
+	return nil
+}
+
+func (p *Player) Loss(amount int) error {
+	if amount < 0 {
+		return errors.New("cannot decrease money by negative amount")
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.money -= amount
+	return nil
 }
