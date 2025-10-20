@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "kind": "profit",
+    "detail": "スタート地点",
+    "effect": {},
+    "prev_id": 0,
+    "next_id": 2
+  },
+  {
+    "id": 2,
+    "kind": "loss",
+    "detail": "1マス戻る",
+    "effect": {},
+    "prev_id": 1,
+    "next_id": 3
+  },
+  {
+    "id": 3,
+    "kind": "quiz",
+    "detail": "クイズマス",
+    "effect": {},
+    "prev_id": 2,
+    "next_id": 0
+  }
+]
