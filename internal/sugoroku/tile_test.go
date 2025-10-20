@@ -28,7 +28,7 @@ func TestInitTilesFromPath_HappyPath(t *testing.T) {
 		{"id": 2, "kind": "loss", "detail": "Middle", "prev_ids": [1], "next_ids": [3]},
 		{"id": 3, "kind": "quiz", "detail": "End", "prev_ids": [2], "next_ids": []}
 	]`
-	tmpFile := createTestFile(t, "happy_path_*.json", testJSON)
+	tmpFile := CreateTestFile(t, "happy_path_*.json", testJSON)
 	defer os.Remove(tmpFile)
 
 	tiles, err := InitTilesFromPath(tmpFile)
@@ -89,7 +89,7 @@ func TestInitTilesFromPath_FileNotFound(t *testing.T) {
 // TestInitTilesFromPath_InvalidJSON tests the error case where the JSON file is malformed.
 func TestInitTilesFromPath_InvalidJSON(t *testing.T) {
 	const invalidJSON = `[{"id": 1, "kind": "profit"` // Malformed JSON
-	tmpFile := createTestFile(t, "invalid_json_*.json", invalidJSON)
+	tmpFile := CreateTestFile(t, "invalid_json_*.json", invalidJSON)
 	defer os.Remove(tmpFile)
 
 	_, err := InitTilesFromPath(tmpFile)
@@ -105,7 +105,7 @@ func TestInitTilesFromPath_InvalidJSON(t *testing.T) {
 func TestInitTilesFromPath_InvalidEffect(t *testing.T) {
 	// Effect is missing the 'type' field
 	const invalidEffectJSON = `[{"id": 1, "kind": "profit", "effect": {"amount": 10}}]`
-	tmpFile := createTestFile(t, "invalid_effect_*.json", invalidEffectJSON)
+	tmpFile := CreateTestFile(t, "invalid_effect_*.json", invalidEffectJSON)
 	defer os.Remove(tmpFile)
 
 	_, err := InitTilesFromPath(tmpFile)
@@ -131,7 +131,7 @@ func TestInitTilesFromPath_AllCases(t *testing.T) {
 		{"id": 9, "kind": "unknown", "effect": {"type": "unknown"}, "prev_ids": [8], "next_ids": [10]},
 		{"id": 10, "kind": "none", "effect": null, "prev_ids": [9], "next_ids": []}
 	]`
-	tmpFile := createTestFile(t, "all_cases_*.json", allCasesJSON)
+	tmpFile := CreateTestFile(t, "all_cases_*.json", allCasesJSON)
 	defer os.Remove(tmpFile)
 
 	tiles, err := InitTilesFromPath(tmpFile)
@@ -180,8 +180,8 @@ func TestInitTilesFromPath_AllCases(t *testing.T) {
 	}
 }
 
-// createTestFile is a helper function to create a temporary file with given content for testing.
-func createTestFile(t *testing.T, pattern, content string) string {
+// CreateTestFile is a helper function to create a temporary file with given content for testing.
+func CreateTestFile(t *testing.T, pattern, content string) string {
 	t.Helper()
 	tmpFile, err := os.CreateTemp("", pattern)
 	if err != nil {
