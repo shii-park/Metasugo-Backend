@@ -8,12 +8,13 @@ import (
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
-	//"google.golang.org/api/option"
 )
 
 var firebaseAuth *auth.Client
 
 func InitFirebase() error {
+	//export GOOGLE_APPLICATION_CREDENTIALS="/home/path/to/Metasugo-Backend/firebase-service-account.json"
+	//環境変数からJSONファイルを読み込む
 
 	app, err := firebase.NewApp(context.Background(), nil)
 	if err != nil {
