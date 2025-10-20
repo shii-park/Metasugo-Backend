@@ -65,6 +65,8 @@ func (e ProfitEffect) Apply(p *Player) error {
 	if e.Amount < 0 {
 		return errors.New("cannot add money by negative amount")
 	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.money += e.Amount
 	return nil
 }
@@ -73,6 +75,8 @@ func (e LossEffect) Apply(p *Player) error {
 	if e.Amount < 0 {
 		return errors.New("cannot decrease money by negative amount")
 	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.money -= e.Amount
 	return nil
 }
