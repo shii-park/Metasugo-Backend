@@ -1,9 +1,12 @@
 package sugoroku
 
+import "sync"
+
 type Player struct {
 	position *Tile
 	id       string
 	money    int
+	mu       sync.Mutex
 }
 
 //                                            __                                      __
