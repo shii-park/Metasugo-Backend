@@ -74,12 +74,15 @@ func (g *Game) GetAllPlayers() []*Player {
 func (g *Game) GetNeighbors(p *Player) []*Player { // 計算量がプレイヤー数になってしまうのでリファクタリングできる(Tileにプレイヤー情報をもたせるなど)
 	targetTiles := []*Tile{}
 	targetPlayers := []*Player{}
-	if p.position.prev != nil {
-		targetTiles = append(targetTiles, p.position.prev)
+
+	for _, prevTile := range p.position.prevs {
+		targetTiles = append(targetTiles, prevTile)
 	}
-	if p.position.next != nil {
-		targetTiles = append(targetTiles, p.position.next)
+
+	for _, nextTile := range p.position.nexts {
+		targetTiles = append(targetTiles, nextTile)
 	}
+
 	if p.position != nil {
 		targetTiles = append(targetTiles, p.position)
 	}

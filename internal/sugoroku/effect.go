@@ -104,7 +104,6 @@ func (e BranchEffect) Apply(p *Player, g *Game) error {
 	return nil
 }
 
-// TODO効果の実装
 func (e OverallEffect) Apply(p *Player, g *Game) error {
 	targetPlayers := g.GetAllPlayers()
 	if e.ProfitAmount > 0 {
@@ -123,7 +122,6 @@ func (e OverallEffect) Apply(p *Player, g *Game) error {
 	return nil
 }
 
-// TODO効果の実装
 func (e NeighborEffect) Apply(p *Player, g *Game) error {
 	targetPlayers := g.GetNeighbors(p)
 	if e.ProfitAmount > 0 {
