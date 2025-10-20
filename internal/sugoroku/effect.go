@@ -42,7 +42,8 @@ type OverallEffect struct {
 }
 
 type NeighborEffect struct {
-	Amount int `json:"amount"`
+	ProfitAmount int `json:"profit_amount"`
+	LossAmount   int `json:"loss_amount"`
 }
 
 type RequireEffect struct {
@@ -104,7 +105,20 @@ func (e OverallEffect) Apply(p *Player, g *Game) error {
 
 // TODO効果の実装
 func (e NeighborEffect) Apply(p *Player, g *Game) error {
-
+	targetPlayers := g.GetNeighbors(p)
+	if e.ProfitAmount > 0 {
+		// 全体にお金をもらう
+		p.Profit(e.ProfitAmount)
+		amount := DistributeMoney(targetPlayers, e.ProfitAmount)
+		LossForTargetPlayers(targetPlayers, amount)
+	} else if e.LossAmount > 0 {
+		// 全員にお金を配る
+		p.Loss(e.LossAmount)
+		amount := DistributeMoney(targetPlayers, e.LossAmount)
+		ProfitForTargetPlayers(targetPlayers, amount)
+	} else {
+		return errors.New("invalid amount for overall effect")
+	}
 	return nil
 }
 
