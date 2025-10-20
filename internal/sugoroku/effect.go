@@ -106,16 +106,24 @@ func (e BranchEffect) Apply(p *Player, g *Game) error {
 
 func (e OverallEffect) Apply(p *Player, g *Game) error {
 	targetPlayers := g.GetAllPlayers()
+
+	otherPlayers := make([]*Player, 0, len(targetPlayers)-1)
+	for _, player := range targetPlayers {
+		if player.id != p.id {
+			otherPlayers = append(otherPlayers, player)
+		}
+	}
+
 	if e.ProfitAmount > 0 {
 		// 全体にお金をもらう
 		p.Profit(e.ProfitAmount)
-		amount := DistributeMoney(targetPlayers, e.ProfitAmount)
-		LossForTargetPlayers(targetPlayers, amount)
+		amount := DistributeMoney(otherPlayers, e.ProfitAmount)
+		LossForTargetPlayers(otherPlayers, amount)
 	} else if e.LossAmount > 0 {
 		// 全員にお金を配る
 		p.Loss(e.LossAmount)
-		amount := DistributeMoney(targetPlayers, e.LossAmount)
-		ProfitForTargetPlayers(targetPlayers, amount)
+		amount := DistributeMoney(otherPlayers, e.LossAmount)
+		ProfitForTargetPlayers(otherPlayers, amount)
 	} else {
 		return errors.New("invalid amount for overall effect")
 	}
