@@ -22,8 +22,8 @@ const TilesJSONPath = "./tiles.json"
 type TileKind string
 
 type Tile struct {
-	prev   *Tile
-	next   *Tile
+	prevs  []*Tile
+	nexts  []*Tile
 	kind   TileKind
 	id     int
 	effect Effect
@@ -32,12 +32,12 @@ type Tile struct {
 
 // JSONの構造に対応した一時的な構造体
 type TileJSON struct {
-	ID     int             `json:"id"`
-	Kind   TileKind        `json:"kind"`
-	Detail string          `json:"detail"`
-	Effect json.RawMessage `json:"effect"`
-	PrevID int             `json:"prev_id"`
-	NextID int             `json:"next_id"`
+	ID      int             `json:"id"`
+	Kind    TileKind        `json:"kind"`
+	Detail  string          `json:"detail"`
+	Effect  json.RawMessage `json:"effect"`
+	PrevIDs []int           `json:"prev_ids"`
+	NextIDs []int           `json:"next_ids"`
 }
 
 type effectWithType struct {
@@ -56,10 +56,10 @@ type effectWithType struct {
 //
 
 // TODO: 完全コンストラクタ化を行うべき
-func NewTile(prev *Tile, next *Tile, kind TileKind, id int, effect Effect, detail string) *Tile {
+func NewTile(prevs []*Tile, nexts []*Tile, kind TileKind, id int, effect Effect, detail string) *Tile {
 	return &Tile{
-		prev:   prev,
-		next:   next,
+		prevs:  prevs,
+		nexts:  nexts,
 		kind:   kind,
 		id:     id,
 		effect: effect,
@@ -169,8 +169,13 @@ func InitTilesFromPath(path string) (map[int]*Tile, error) {
 	for _, tj := range tilesJSON {
 		currentTile := tileMap[tj.ID]
 
-		currentTile.prev = tileMap[tj.PrevID]
-		currentTile.next = tileMap[tj.NextID]
+		for _, prevID := range tj.PrevIDs {
+			currentTile.prevs = append(currentTile.prevs, tileMap[prevID])
+		}
+
+		for _, nextID := range tj.NextIDs {
+			currentTile.nexts = append(currentTile.nexts, tileMap[nextID])
+		}
 	}
 
 	return tileMap, nil
