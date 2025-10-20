@@ -34,6 +34,19 @@ func NewGame() *Game {
 	}
 }
 
+// テスト用のラッパー関数
+func NewGameWithTiles(path string) *Game {
+	tileMap, err := InitTilesFromPath(path)
+	if err != nil {
+		panic(fmt.Sprintf("failed to initialize tiles: %v", err))
+	}
+	InitQuiz()
+	return &Game{
+		tileMap: tileMap,
+		players: make(map[string]*Player),
+	}
+}
+
 //                           __      __                        __
 //                          |  \    |  \                      |  \
 //  ______ ____    ______  _| $$_   | $$____    ______    ____| $$  _______
