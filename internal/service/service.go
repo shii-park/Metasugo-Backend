@@ -17,8 +17,8 @@ func GenerateToken(userId string) (string, error) {
 
 	signed, err := token.SignedString([]byte("KEY"))
 	if err != nil {
-		log.Fatal("署名に失敗しました", err)
-		return "", nil
+		log.Printf("署名に失敗しました: %v", err)
+		return "", err
 	}
 
 	log.Println(signed)
