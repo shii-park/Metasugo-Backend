@@ -84,17 +84,18 @@ func (e BranchEffect) Apply(p *Player, g *Game) error {
 }
 
 // TODO効果の実装
-func (e OverallEffect) Apply(p *Player, game *Game) error {
-	players := game.GetPlayers()
-
+func (e OverallEffect) Apply(p *Player, g *Game) error {
+	targetPlayers := g.GetAllPlayers()
 	if e.ProfitAmount > 0 {
-		for _, p := range players {
-			p.Profit(e.ProfitAmount)
-		}
+		// 全体にお金をもらう
+		p.Profit(e.ProfitAmount)
+		amount := DistributeMoney(targetPlayers, e.ProfitAmount)
+		LossForTargetPlayers(targetPlayers, amount)
 	} else if e.LossAmount > 0 {
-		for _, p := range players {
-			p.Loss(e.ProfitAmount)
-		}
+		// 全員にお金を配る
+		p.Loss(e.LossAmount)
+		amount := DistributeMoney(targetPlayers, e.LossAmount)
+		ProfitForTargetPlayers(targetPlayers, amount)
 	} else {
 		return errors.New("invalid amount for overall effect")
 	}
