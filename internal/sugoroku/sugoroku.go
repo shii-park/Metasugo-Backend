@@ -101,3 +101,9 @@ func (g *Game) GetNeighbors(p *Player) []*Player { // 計算量がプレイヤ�
 	}
 	return targetPlayers
 }
+
+func DistributeMoney(players []*Player, amount int) int {
+	playerNum := len(players)
+	amountPerPlayers := amount / playerNum
+	return amountPerPlayers
+}
