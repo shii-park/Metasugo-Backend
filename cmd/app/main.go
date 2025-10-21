@@ -18,8 +18,8 @@ func main() {
 	}
 
 	//いろんなエンドポイントをつくろう
-	router.GET("/ranking", handler.Ranking())
-	router.GET("/ws/connection"handler.WebSocket())
+	router.GET("/ranking", handler.HandleRanking())
+	router.GET("/ws/connection", handler.HandleWebSocket())
 
 	sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
 }
