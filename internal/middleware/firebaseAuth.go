@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"context"
+	"net/http"
+
 	//"net/http"
 	"strings"
 
@@ -10,7 +12,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var firebaseAuth *auth.Client
+var (
+	firebaseAuth *auth.Client
+)
 
 func InitFirebase() error {
 	//export GOOGLE_APPLICATION_CREDENTIALS="/home/path/to/Metasugo-Backend/firebase-service-account.json"
@@ -32,28 +36,30 @@ func InitFirebase() error {
 
 func AuthToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
+		if firebaseAuth == nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "認証システムが初期化されていません"})
+		}
+		authHeader := strings.TrimSpace(c.GetHeader("Authorization"))
 		if authHeader == "" {
-			c.JSON(401, gin.H{"error": "Authorization header required"})
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorizationヘッダが必要です"})
 			return
 		}
-		idToken := strings.TrimPrefix(authHeader, "Bearer ")
-		if idToken == authHeader {
-			c.JSON(401, gin.H{"error": "Invalid authorization format"})
-			c.Abort()
+		lower := strings.ToLower(authHeader)
+		if !strings.HasPrefix(lower, "bearer ") {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "無効な認証形式です"})
 			return
 		}
+		idToken := strings.TrimSpace(authHeader[len("Bearer "):])
 
-		token, err := firebaseAuth.VerifyIDToken(context.Background(), idToken)
+		token, err := firebaseAuth.VerifyIDToken(c.Request.Context(), idToken)
 		if err != nil {
-			c.JSON(401, gin.H{"error": "Invalid token"})
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "無効なトークンです"})
 			return
 		}
 
+		userEmail, _ := token.Claims["email"].(string)
 		c.Set("firebase_uid", token.UID)
-		c.Set("user_email", token.Claims["email"]) //これは必要ないかも
+		c.Set("user_email", userEmail) //これは必要ないかも
 		c.Next()
 	}
 }
