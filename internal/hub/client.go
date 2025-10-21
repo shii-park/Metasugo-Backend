@@ -11,15 +11,15 @@ type Client struct {
 	hub    *Hub
 	conn   *websocket.Conn
 	send   chan []byte
-	userId string
+	userID string
 }
 
-func NewClient(hub *Hub, conn *websocket.Conn, userId string) *Client {
+func NewClient(hub *Hub, conn *websocket.Conn, userID string) *Client {
 	return &Client{
 		hub:    hub,
 		conn:   conn,
 		send:   make(chan []byte, 256),
-		userId: userId,
+		userID: userID,
 	}
 }
 
