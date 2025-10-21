@@ -55,10 +55,14 @@ func (p *Player) movePrevTile() {
 	}
 }
 
-func (p *Player) MoveByDiceRoll(steps int) {
+func (p *Player) MoveByDiceRoll(steps int, g *Game) error {
 	for i := 0; i < steps; i++ {
 		p.moveNextTile()
 	}
+	if err := p.position.effect.Apply(p, g); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (p *Player) Profit(amount int) error {

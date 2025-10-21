@@ -65,6 +65,9 @@ type RequireEffect struct {
 type GambleEffect struct {
 }
 
+type NoEffect struct {
+}
+
 type Quiz struct {
 	ID                int      `json:"id"`
 	Question          string   `json:"question"`
@@ -155,6 +158,10 @@ func (e RequireEffect) Apply(p *Player, g *Game) error {
 }
 
 func (e GambleEffect) Apply(p *Player, g *Game) error {
+	return nil
+}
+
+func (e NoEffect) Apply(p *Player, g *Game) error {
 	return nil
 }
 

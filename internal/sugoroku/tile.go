@@ -161,6 +161,11 @@ func InitTilesFromPath(path string) (map[int]*Tile, error) {
 			default:
 				effect = nil
 			}
+		} else {
+			effect = NoEffect{}
+		}
+		if effect == nil {
+			effect = NoEffect{}
 		}
 		tile := NewTile(nil, nil, tj.Kind, tj.ID, effect, tj.Detail)
 		tileMap[tile.id] = tile
