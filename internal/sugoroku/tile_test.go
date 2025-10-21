@@ -156,11 +156,11 @@ func TestInitTilesFromPath_AllCases(t *testing.T) {
 	if tileMap[8].kind != gamble {
 		t.Errorf("Expected tile 8 to be of kind 'gamble', got '%s'", tileMap[8].kind)
 	}
-	if tileMap[9].effect != nil {
-		t.Errorf("Expected tile 9 (unknown type) to have a nil effect, got %T", tileMap[9].effect)
+	if _, ok := tileMap[9].effect.(NoEffect); !ok {
+		t.Errorf("Expected tile 9 (unknown type) to have a NoEffect, got %T", tileMap[9].effect)
 	}
-	if tileMap[10].effect != nil {
-		t.Errorf("Expected tile 10 (null effect) to have a nil effect, got %T", tileMap[10].effect)
+	if _, ok := tileMap[10].effect.(NoEffect); !ok {
+		t.Errorf("Expected tile 10 (null effect) to have a NoEffect, got %T", tileMap[10].effect)
 	}
 
 	// Check links
