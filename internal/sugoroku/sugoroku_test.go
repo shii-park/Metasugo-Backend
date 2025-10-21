@@ -27,7 +27,7 @@ func TestGamePlay(t *testing.T) {
 	}
 
 	// 2. Move Player
-	game.players["test_player"].MoveByDiceRoll(1)
+	game.players["test_player"].MoveByDiceRoll(1, game)
 
 	// 3. Check New Position
 	expectedTileID := 2 // Assuming the next tile from InitialTileID(1) is 2
@@ -52,21 +52,13 @@ func TestTileEffects_ProfitAndLoss(t *testing.T) {
 	}
 
 	// Move to profit tile
-	player.MoveByDiceRoll(1)
-	err = player.position.effect.Apply(player, game)
-	if err != nil {
-		t.Fatalf("Error applying profit effect: %v", err)
-	}
+	player.MoveByDiceRoll(1, game)
 	if player.money != 100 {
 		t.Errorf("Expected money to be 100 after profit tile, but got %d", player.money)
 	}
 
 	// Move to loss tile
-	player.MoveByDiceRoll(1)
-	err = player.position.effect.Apply(player, game)
-	if err != nil {
-		t.Fatalf("Error applying loss effect: %v", err)
-	}
+	player.MoveByDiceRoll(1, game)
 	if player.money != 50 {
 		t.Errorf("Expected money to be 50 after loss tile, but got %d", player.money)
 	}
@@ -93,7 +85,7 @@ func TestMultiplayer(t *testing.T) {
 	}
 
 	// Move player1
-	player1.MoveByDiceRoll(1)
+	player1.MoveByDiceRoll(1, game)
 
 	// Check positions
 	if player1.position.id != 2 {
@@ -120,11 +112,7 @@ func TestMultiplayerEffects_OverallAndNeighbor(t *testing.T) {
 	player3, _ := game.AddPlayer("player3")
 
 	// Move player1 to overall profit tile
-	player1.MoveByDiceRoll(1)
-	err := player1.position.effect.Apply(player1, game)
-	if err != nil {
-		t.Fatalf("Error applying overall effect: %v", err)
-	}
+	player1.MoveByDiceRoll(1, game)
 
 	// player1 gets 100, player2 and player3 lose 50 each
 	if player1.money != 100 {
@@ -138,11 +126,7 @@ func TestMultiplayerEffects_OverallAndNeighbor(t *testing.T) {
 	}
 
 	// Move player2 to neighbor loss tile (player1 is a neighbor)
-	player2.MoveByDiceRoll(2)
-	err = player2.position.effect.Apply(player2, game)
-	if err != nil {
-		t.Fatalf("Error applying neighbor effect: %v", err)
-	}
+	player2.MoveByDiceRoll(2, game)
 
 	// player2 loses 50, player1 gains 50
 	if player2.money != -100 {
@@ -182,11 +166,7 @@ func TestNeighborEffect_WithPlayerOnSameTile(t *testing.T) {
 	player5.position = game.tileMap[3] // Same tile as player4 will land on
 
 	// Move player4 to the neighbor effect tile
-	player4.MoveByDiceRoll(2)
-	err := player4.position.effect.Apply(player4, game)
-	if err != nil {
-		t.Fatalf("Error applying neighbor effect: %v", err)
-	}
+	player4.MoveByDiceRoll(2, game)
 
 	// player4 gets 90, and the 4 neighbors (player1, player2, player3, player5) lose 22 each (90/4=22.5, truncated)
 	if player4.money != 90 {
