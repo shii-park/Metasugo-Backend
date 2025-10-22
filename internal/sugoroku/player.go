@@ -2,6 +2,7 @@ package sugoroku
 
 import (
 	"errors"
+	"math/rand"
 	"sync"
 )
 
@@ -103,4 +104,8 @@ func LossForTargetPlayers(players []*Player, amount int) error {
 		p.Loss(amount)
 	}
 	return nil
+}
+
+func RollDice() int {
+	return rand.Intn(6) + 1
 }
