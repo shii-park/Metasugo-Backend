@@ -38,6 +38,7 @@ func AuthToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if firebaseAuth == nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "認証システムが初期化されていません"})
+			return
 		}
 		authHeader := strings.TrimSpace(c.GetHeader("Authorization"))
 		if authHeader == "" {
