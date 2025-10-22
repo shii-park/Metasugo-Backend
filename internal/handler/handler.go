@@ -18,11 +18,15 @@ var upgrater = websocket.Upgrader{
 	},
 }
 
+type WebSocketHandler struct {
+	hub *service.Hub
+}
+
 func HandleRanking() {
 	return
 }
 
-func HandleWebSocket( /*w http.ResponseWriter,r *http.Request,*/ c *gin.Context) {
+func (h *WebSocketHandler) HandleWebSocket( /*w http.ResponseWriter,r *http.Request,*/ c *gin.Context) {
 	firebaseUID, exists := c.Get("firebase_uid")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "ログインしていません"})
@@ -46,4 +50,6 @@ func HandleWebSocket( /*w http.ResponseWriter,r *http.Request,*/ c *gin.Context)
 	}
 	client.Hub.Register <- client
 
+	go client.WritePump()
+	go client.ReadPump()
 }
