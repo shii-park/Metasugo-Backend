@@ -5,11 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 
-	"github.com/shii-park/Metasugo-Backend/internal/middleware"
-	"github.com/shii-park/Metasugo-Backend/internal/service"
+	//"github.com/shii-park/Metasugo-Backend/internal/middleware"
+	"github.com/shii-park/Metasugo-Backend/internal/hub"
 )
 
 var upgrater = websocket.Upgrader{
@@ -19,7 +18,7 @@ var upgrater = websocket.Upgrader{
 }
 
 type WebSocketHandler struct {
-	hub *service.Hub
+	hub *hub.Hub
 }
 
 func HandleRanking() {
@@ -41,15 +40,9 @@ func (h *WebSocketHandler) HandleWebSocket( /*w http.ResponseWriter,r *http.Requ
 		return
 	}
 
-	client := &service.Client{
-		ID:     uuid.New().String(),
-		Conn:   conn,
-		Send:   make(chan []byte, 256),
-		Hub:    h.hub,
-		UserID: userId,
-	}
-	client.Hub.Register <- client
+	client := hub.NewClient(h.hub, conn, userId)
+	h.hub.Register(client)
 
-	go client.WritePump()
+	go client.writePump()
 	go client.ReadPump()
 }
