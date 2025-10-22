@@ -59,7 +59,11 @@ func (p *Player) movePrevTile() {
 func (p *Player) MoveByDiceRoll(steps int, g *Game) error {
 	for i := 0; i < steps; i++ {
 		p.moveNextTile()
+		if p.position.kind == branch {
+			break
+		}
 	}
+
 	if err := p.position.effect.Apply(p, g); err != nil {
 		return err
 	}
