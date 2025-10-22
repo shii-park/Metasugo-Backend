@@ -1,7 +1,6 @@
 package service
 
-import (
-	"log"
+/*import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,12 +14,10 @@ func GenerateToken(userId string) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signed, err := token.SignedString([]byte("KEY"))
+	accessToken, err := token.SignedString([]byte("KEY"))
 	if err != nil {
-		log.Printf("署名に失敗しました: %v", err)
 		return "", err
 	}
 
-	log.Println(signed)
-	return signed, nil
-}
+	return accessToken, nil
+}*/
