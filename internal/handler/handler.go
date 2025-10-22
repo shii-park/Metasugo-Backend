@@ -11,6 +11,7 @@ import (
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
 )
 
+/**************************************************/
 var upgrater = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
@@ -21,6 +22,7 @@ type WebSocketHandler struct {
 	hub *hub.Hub
 }
 
+/**************************************************/
 func HandleRanking() {
 	return
 }
