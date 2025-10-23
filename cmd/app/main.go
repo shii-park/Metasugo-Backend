@@ -21,7 +21,7 @@ func main() {
 	go h.Run()
 	wsHandler := handler.NewWebSocketHandler(h)
 
-	//いろんなエンドポイントをつくろう
+	/**********エンドポイント**********/
 	ranking := router.Group("/ranking")
 	{
 		ranking.POST("/score")        //スコア追加
@@ -31,6 +31,7 @@ func main() {
 		ranking.GET("/me")            //自分のランクを取得
 	}
 	router.GET("/ws/connection", middleware.AuthToken(), wsHandler.HandleWebSocket)
+	/**********エンドポイントここまで**********/
 
 	sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
 	router.Run()
