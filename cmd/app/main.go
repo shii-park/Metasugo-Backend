@@ -26,4 +26,5 @@ func main() {
 	router.GET("/ws/connection", middleware.AuthToken(), wsHandler.HandleWebSocket)
 
 	sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
+	router.Run()
 }

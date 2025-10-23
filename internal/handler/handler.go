@@ -12,7 +12,7 @@ import (
 )
 
 /**************************************************/
-var upgrater = websocket.Upgrader{
+var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		// TODO: 許可オリジンの設定
 		return true
@@ -41,7 +41,7 @@ func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 	}
 	//HTTPをWebSocketに昇格
 
-	conn, err := upgrater.Upgrade(c.Writer, c.Request, nil)
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Printf("Failed to upgrade connection: %v", err)
 		return
