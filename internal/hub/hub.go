@@ -16,6 +16,14 @@ func NewHub() *Hub {
 	}
 }
 
+func (h *Hub) Register(c *Client) {
+	h.register <- c
+}
+
+func (h *Hub) Unregister(c *Client) {
+	h.unregister <- c
+}
+
 func (h *Hub) Run() {
 	for {
 		select {

@@ -29,7 +29,7 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 )
 
-func (c *Client) readPump() {
+func (c *Client) ReadPump() {
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()
@@ -50,7 +50,7 @@ func (c *Client) readPump() {
 	}
 }
 
-func (c *Client) writePump() {
+func (c *Client) WritePump() {
 	ticker := time.NewTicker(pingPeriod)
 
 	defer func() {
