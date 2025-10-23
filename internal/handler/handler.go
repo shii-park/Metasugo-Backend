@@ -14,6 +14,7 @@ import (
 /**************************************************/
 var upgrater = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
+		// TODO: 許可オリジンの設定
 		return true
 	},
 }
@@ -27,17 +28,17 @@ func NewWebSocketHandler(h *hub.Hub) *WebSocketHandler {
 	return &WebSocketHandler{hub: h}
 }
 
+/**************************************************/
 func HandleRanking() {
 	return
 }
 
 func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
-	firebaseUID, exists := c.Get("firebase_uid")
-	if !exists {
+	userId := c.GetString("firebase_uid")
+	if userId == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "ログインしていません"})
 		return
 	}
-	userId := firebaseUID.(string)
 	//HTTPをWebSocketに昇格
 
 	conn, err := upgrater.Upgrade(c.Writer, c.Request, nil)
