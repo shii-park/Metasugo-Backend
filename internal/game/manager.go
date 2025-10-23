@@ -18,3 +18,7 @@ func NewGameManager(g *sugoroku.Game, h *hub.Hub) *GameManager {
 		playerClients: make(map[string]*hub.Client),
 	}
 }
+
+func (gm *GameManager) RegisterPlayerClient(userID string, c *hub.Client) {
+	gm.playerClients[userID] = c
+}
