@@ -15,7 +15,7 @@ func TestGamePlay(t *testing.T) {
 	defer os.Remove(tmpFile)
 
 	// Setup game
-	game := NewGameWithTiles(tmpFile)
+	game := NewGameWithTilesForTest(tmpFile)
 	player, err := game.AddPlayer("test_player")
 	if err != nil {
 		t.Fatalf("Failed to add player: %v", err)
@@ -45,7 +45,7 @@ func TestTileEffects_ProfitAndLoss(t *testing.T) {
 	tmpFile := CreateTestFile(t, "test_tile_effects_*.json", testJSON)
 	defer os.Remove(tmpFile)
 
-	game := NewGameWithTiles(tmpFile)
+	game := NewGameWithTilesForTest(tmpFile)
 	player, err := game.AddPlayer("test_player")
 	if err != nil {
 		t.Fatalf("Failed to add player: %v", err)
@@ -73,7 +73,7 @@ func TestMultiplayer(t *testing.T) {
 	tmpFile := CreateTestFile(t, "test_multiplayer_*.json", testJSON)
 	defer os.Remove(tmpFile)
 
-	game := NewGameWithTiles(tmpFile)
+	game := NewGameWithTilesForTest(tmpFile)
 	player1, err := game.AddPlayer("player1")
 	if err != nil {
 		t.Fatalf("Failed to add player1: %v", err)
@@ -106,7 +106,7 @@ func TestMultiplayerEffects_OverallAndNeighbor(t *testing.T) {
 	tmpFile := CreateTestFile(t, "test_multiplayer_effects_*.json", testJSON)
 	defer os.Remove(tmpFile)
 
-	game := NewGameWithTiles(tmpFile)
+	game := NewGameWithTilesForTest(tmpFile)
 	player1, _ := game.AddPlayer("player1")
 	player2, _ := game.AddPlayer("player2")
 	player3, _ := game.AddPlayer("player3")
@@ -151,7 +151,7 @@ func TestNeighborEffect_WithPlayerOnSameTile(t *testing.T) {
 	tmpFile := CreateTestFile(t, "test_neighbor_same_tile_*.json", testJSON)
 	defer os.Remove(tmpFile)
 
-	game := NewGameWithTiles(tmpFile)
+	game := NewGameWithTilesForTest(tmpFile)
 	player1, _ := game.AddPlayer("player1") // Neighbor 1
 	player2, _ := game.AddPlayer("player2") // Neighbor 2
 	player3, _ := game.AddPlayer("player3") // Neighbor 3
@@ -197,7 +197,7 @@ func TestMoveByDiceRoll_BranchTile(t *testing.T) {
 	tmpFile := CreateTestFile(t, "test_branch_tile_*.json", testJSON)
 	defer os.Remove(tmpFile)
 
-	game := NewGameWithTiles(tmpFile)
+	game := NewGameWithTilesForTest(tmpFile)
 	player, err := game.AddPlayer("test_player")
 	if err != nil {
 		t.Fatalf("Failed to add player: %v", err)

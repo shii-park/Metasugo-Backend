@@ -32,25 +32,27 @@ func HandleRanking(c *gin.Context) {
 }
 
 // Websocket接続時のハンドラー
-func (h *WebSocketHandler) HandleWebSocket(c *gin.Context, gm *game.GameManager) {
-	userID := c.GetString("firebase_uid")
-	if userID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "ログインしていません"})
-		return
+func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetString("firebase_uid")
+		if userID == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "ログインしていません"})
+			return
+		}
+
+		//HTTPをWebSocketに昇格
+		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+		if err != nil {
+			log.Printf("Failed to upgrade connection: %v", err)
+			return
+		}
+
+		client := hub.NewClient(h.hub, conn, userID)
+
+		h.hub.Register(client)
+		gm.RegisterPlayerClient(userID, client)
+
+		go client.WritePump()
+		go client.ReadPump()
 	}
-
-	//HTTPをWebSocketに昇格
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		log.Printf("Failed to upgrade connection: %v", err)
-		return
-	}
-
-	client := hub.NewClient(h.hub, conn, userID)
-
-	h.hub.Register(client)
-	gm.RegisterPlayerClient(userID, client)
-
-	go client.WritePump()
-	go client.ReadPump()
 }
