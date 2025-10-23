@@ -32,8 +32,5 @@ func main() {
 
 	//いろんなエンドポイントをつくろう
 	// router.GET("/ranking", handler.HandleRanking)
-	router.GET("/ws/connection", middleware.AuthToken(), func(c *gin.Context) {
-		wsHandler.HandleWebSocket(c, gm)
-	})
-
+	router.GET("/ws/connection", middleware.AuthToken(), wsHandler.HandleWebSocket(gm))
 }
