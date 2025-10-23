@@ -20,17 +20,20 @@ func main() {
 	if err != nil {
 		log.Fatal("Firebaseの初期化に失敗:", err)
 	}
+
+	//ゲームの初期化
 	h := hub.NewHub()
 	go h.Run()
+	g := sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
+	gm := game.NewGameManager(g, h)
+
+	router.Run()
 	wsHandler := handler.NewWebSocketHandler(h)
 
 	//いろんなエンドポイントをつくろう
 	// router.GET("/ranking", handler.HandleRanking)
-	router.GET("/ws/connection", middleware.AuthToken(), wsHandler.HandleWebSocket)
+	router.GET("/ws/connection", middleware.AuthToken(), func(c *gin.Context) {
+		wsHandler.HandleWebSocket(c, gm)
+	})
 
-	g := sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
-	game.NewGameManager(g, h)
-
-	sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
-	router.Run()
 }
