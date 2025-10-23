@@ -9,8 +9,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/shii-park/Metasugo-Backend/internal/game"
 	"github.com/shii-park/Metasugo-Backend/internal/handler"
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
+	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
 )
 
 // WebSocketHandlerのテスト: Firebase認証がない場合
@@ -20,16 +22,17 @@ func TestHandleWebSocket_NoAuth(t *testing.T) {
 	// Hubの初期化
 	h := hub.NewHub()
 	go h.Run()
-	defer func() {
-		// Hubのクリーンアップは省略（テスト終了時に自動的に終了）
-	}()
+
+	// GameManagerの初期化
+	g := sugoroku.NewGameWithTilesForTest("../tiles.json")
+	gm := game.NewGameManager(g, h)
 
 	// ハンドラーの作成
 	wsHandler := handler.NewWebSocketHandler(h)
 
 	// ルーターの設定
 	router := gin.New()
-	router.GET("/ws", wsHandler.HandleWebSocket)
+	router.GET("/ws", wsHandler.HandleWebSocket(gm))
 
 	// リクエストの作成
 	req, _ := http.NewRequest("GET", "/ws", nil)
@@ -58,6 +61,10 @@ func TestHandleWebSocket_WithAuth(t *testing.T) {
 	h := hub.NewHub()
 	go h.Run()
 
+	// GameManagerの初期化
+	g := sugoroku.NewGameWithTilesForTest("../tiles.json")
+	gm := game.NewGameManager(g, h)
+
 	// ハンドラーの作成
 	wsHandler := handler.NewWebSocketHandler(h)
 
@@ -66,7 +73,7 @@ func TestHandleWebSocket_WithAuth(t *testing.T) {
 	router.GET("/ws", func(c *gin.Context) {
 		// テスト用にfirebase_uidを設定
 		c.Set("firebase_uid", "test-user-123")
-		wsHandler.HandleWebSocket(c)
+		wsHandler.HandleWebSocket(gm)(c)
 	})
 
 	server := httptest.NewServer(router)
@@ -125,7 +132,7 @@ func TestHandleRanking(t *testing.T) {
 		}
 	}()
 
-	handler.HandleRanking()
+	handler.HandleRanking(nil)
 }
 
 // WebSocketハンドラーの統合テスト: 複数クライアント
@@ -135,6 +142,10 @@ func TestHandleWebSocket_MultipleClients(t *testing.T) {
 	// Hubの初期化
 	h := hub.NewHub()
 	go h.Run()
+
+	// GameManagerの初期化
+	g := sugoroku.NewGameWithTilesForTest("../tiles.json")
+	gm := game.NewGameManager(g, h)
 
 	// ハンドラーの作成
 	wsHandler := handler.NewWebSocketHandler(h)
@@ -148,7 +159,7 @@ func TestHandleWebSocket_MultipleClients(t *testing.T) {
 			uid = "test-user"
 		}
 		c.Set("firebase_uid", uid)
-		wsHandler.HandleWebSocket(c)
+		wsHandler.HandleWebSocket(gm)(c)
 	})
 
 	server := httptest.NewServer(router)
@@ -195,6 +206,10 @@ func TestHandleWebSocket_CloseConnection(t *testing.T) {
 	h := hub.NewHub()
 	go h.Run()
 
+	// GameManagerの初期化
+	g := sugoroku.NewGameWithTilesForTest("../tiles.json")
+	gm := game.NewGameManager(g, h)
+
 	// ハンドラーの作成
 	wsHandler := handler.NewWebSocketHandler(h)
 
@@ -202,7 +217,7 @@ func TestHandleWebSocket_CloseConnection(t *testing.T) {
 	router := gin.New()
 	router.GET("/ws", func(c *gin.Context) {
 		c.Set("firebase_uid", "test-user-close")
-		wsHandler.HandleWebSocket(c)
+		wsHandler.HandleWebSocket(gm)(c)
 	})
 
 	server := httptest.NewServer(router)

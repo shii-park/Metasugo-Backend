@@ -15,7 +15,7 @@ func TestGamePlay(t *testing.T) {
 	defer os.Remove(tmpFile)
 
 	// Setup game
-	game := NewGameWithTiles(tmpFile)
+	game := NewGameWithTilesForTest(tmpFile)
 	player, err := game.AddPlayer("test_player")
 	if err != nil {
 		t.Fatalf("Failed to add player: %v", err)
@@ -45,7 +45,7 @@ func TestTileEffects_ProfitAndLoss(t *testing.T) {
 	tmpFile := CreateTestFile(t, "test_tile_effects_*.json", testJSON)
 	defer os.Remove(tmpFile)
 
-	game := NewGameWithTiles(tmpFile)
+	game := NewGameWithTilesForTest(tmpFile)
 	player, err := game.AddPlayer("test_player")
 	if err != nil {
 		t.Fatalf("Failed to add player: %v", err)
@@ -73,7 +73,7 @@ func TestMultiplayer(t *testing.T) {
 	tmpFile := CreateTestFile(t, "test_multiplayer_*.json", testJSON)
 	defer os.Remove(tmpFile)
 
-	game := NewGameWithTiles(tmpFile)
+	game := NewGameWithTilesForTest(tmpFile)
 	player1, err := game.AddPlayer("player1")
 	if err != nil {
 		t.Fatalf("Failed to add player1: %v", err)
@@ -106,7 +106,7 @@ func TestMultiplayerEffects_OverallAndNeighbor(t *testing.T) {
 	tmpFile := CreateTestFile(t, "test_multiplayer_effects_*.json", testJSON)
 	defer os.Remove(tmpFile)
 
-	game := NewGameWithTiles(tmpFile)
+	game := NewGameWithTilesForTest(tmpFile)
 	player1, _ := game.AddPlayer("player1")
 	player2, _ := game.AddPlayer("player2")
 	player3, _ := game.AddPlayer("player3")
@@ -151,7 +151,7 @@ func TestNeighborEffect_WithPlayerOnSameTile(t *testing.T) {
 	tmpFile := CreateTestFile(t, "test_neighbor_same_tile_*.json", testJSON)
 	defer os.Remove(tmpFile)
 
-	game := NewGameWithTiles(tmpFile)
+	game := NewGameWithTilesForTest(tmpFile)
 	player1, _ := game.AddPlayer("player1") // Neighbor 1
 	player2, _ := game.AddPlayer("player2") // Neighbor 2
 	player3, _ := game.AddPlayer("player3") // Neighbor 3
@@ -183,5 +183,36 @@ func TestNeighborEffect_WithPlayerOnSameTile(t *testing.T) {
 	}
 	if player5.money != -22 {
 		t.Errorf("Player5 should have -22, but has %d", player5.money)
+	}
+}
+
+func TestMoveByDiceRoll_BranchTile(t *testing.T) {
+	const testJSON = `[
+		{"id": 1, "kind": "normal", "detail": "Start", "prev_ids": [], "next_ids": [2]},
+		{"id": 2, "kind": "normal", "detail": "Normal Tile", "prev_ids": [1], "next_ids": [3]},
+		{"id": 3, "kind": "branch", "detail": "Branch Tile", "prev_ids": [2], "next_ids": [4, 5]},
+		{"id": 4, "kind": "normal", "detail": "Path A", "prev_ids": [3], "next_ids": []},
+		{"id": 5, "kind": "normal", "detail": "Path B", "prev_ids": [3], "next_ids": []}
+	]`
+	tmpFile := CreateTestFile(t, "test_branch_tile_*.json", testJSON)
+	defer os.Remove(tmpFile)
+
+	game := NewGameWithTilesForTest(tmpFile)
+	player, err := game.AddPlayer("test_player")
+	if err != nil {
+		t.Fatalf("Failed to add player: %v", err)
+	}
+
+	// Player starts at tile 1
+	if player.position.id != 1 {
+		t.Errorf("Expected player to start at tile 1, but got %d", player.position.id)
+	}
+
+	// Move player 5 steps. This should land them on tile 3 (branch) and break, not reaching tile 4 or 5.
+	player.MoveByDiceRoll(5, game)
+
+	// Check if the player stopped at the branch tile (id 3)
+	if player.position.id != 3 {
+		t.Errorf("Expected player to stop at branch tile (id 3), but got %d", player.position.id)
 	}
 }

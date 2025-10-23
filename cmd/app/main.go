@@ -3,10 +3,13 @@ package main
 import (
 	"log"
 
+	//"github.com/Metasugo-Backend/internal/handler"
+
 	"github.com/gin-gonic/gin"
+	"github.com/shii-park/Metasugo-Backend/internal/game"
+	"github.com/shii-park/Metasugo-Backend/internal/hub"
 
 	"github.com/shii-park/Metasugo-Backend/internal/handler"
-	"github.com/shii-park/Metasugo-Backend/internal/hub"
 	"github.com/shii-park/Metasugo-Backend/internal/middleware"
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
 )
@@ -17,14 +20,18 @@ func main() {
 	if err != nil {
 		log.Fatal("Firebaseの初期化に失敗:", err)
 	}
+
+	//ゲームの初期化
 	h := hub.NewHub()
 	go h.Run()
+	g := sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
+	gm := game.NewGameManager(g, h)
+
 	wsHandler := handler.NewWebSocketHandler(h)
 
 	//いろんなエンドポイントをつくろう
-	router.GET("/ranking", handler.HandleRanking)
-	router.GET("/ws/connection", middleware.AuthToken(), wsHandler.HandleWebSocket)
+	// router.GET("/ranking", handler.HandleRanking)
+	router.GET("/ws/connection", middleware.AuthToken(), wsHandler.HandleWebSocket(gm))
 
-	sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
 	router.Run()
 }

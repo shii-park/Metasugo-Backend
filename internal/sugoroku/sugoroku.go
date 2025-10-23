@@ -35,7 +35,7 @@ func NewGame() *Game {
 }
 
 // テスト用のラッパー関数
-func NewGameWithTiles(path string) *Game {
+func NewGameWithTilesForTest(path string) *Game {
 	tileMap, err := InitTilesFromPath(path)
 	if err != nil {
 		panic(fmt.Sprintf("failed to initialize tiles: %v", err))
@@ -88,13 +88,8 @@ func (g *Game) GetNeighbors(p *Player) []*Player { // 計算量がプレイヤ�
 	targetTiles := []*Tile{}
 	targetPlayers := []*Player{}
 
-	for _, prevTile := range p.position.prevs {
-		targetTiles = append(targetTiles, prevTile)
-	}
-
-	for _, nextTile := range p.position.nexts {
-		targetTiles = append(targetTiles, nextTile)
-	}
+	targetTiles = append(targetTiles, p.position.prevs...)
+	targetTiles = append(targetTiles, p.position.nexts...)
 
 	if p.position != nil {
 		targetTiles = append(targetTiles, p.position)

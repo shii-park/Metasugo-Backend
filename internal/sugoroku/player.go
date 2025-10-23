@@ -2,6 +2,7 @@ package sugoroku
 
 import (
 	"errors"
+	"math/rand"
 	"sync"
 )
 
@@ -28,6 +29,10 @@ func NewPlayer(id string, position *Tile) *Player {
 		position: position,
 		id:       id,
 	}
+}
+
+func (p *Player) GetID() string {
+	return p.id
 }
 
 //	                         __      __                        __
@@ -58,7 +63,11 @@ func (p *Player) movePrevTile() {
 func (p *Player) MoveByDiceRoll(steps int, g *Game) error {
 	for i := 0; i < steps; i++ {
 		p.moveNextTile()
+		if p.position.kind == branch {
+			break
+		}
 	}
+
 	if err := p.position.effect.Apply(p, g); err != nil {
 		return err
 	}
@@ -103,4 +112,8 @@ func LossForTargetPlayers(players []*Player, amount int) error {
 		p.Loss(amount)
 	}
 	return nil
+}
+
+func RollDice() int {
+	return rand.Intn(6) + 1
 }
