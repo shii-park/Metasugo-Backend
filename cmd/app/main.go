@@ -27,10 +27,11 @@ func main() {
 	g := sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
 	gm := game.NewGameManager(g, h)
 
-	router.Run()
 	wsHandler := handler.NewWebSocketHandler(h)
 
 	//いろんなエンドポイントをつくろう
 	// router.GET("/ranking", handler.HandleRanking)
 	router.GET("/ws/connection", middleware.AuthToken(), wsHandler.HandleWebSocket(gm))
+
+	router.Run()
 }
