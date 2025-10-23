@@ -20,5 +20,6 @@ func NewGameManager(g *sugoroku.Game, h *hub.Hub) *GameManager {
 }
 
 func (gm *GameManager) RegisterPlayerClient(userID string, c *hub.Client) {
+	gm.game.AddPlayer(userID)
 	gm.playerClients[userID] = c
 }
