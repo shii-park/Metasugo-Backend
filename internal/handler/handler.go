@@ -23,11 +23,15 @@ type WebSocketHandler struct {
 }
 
 /**************************************************/
+func NewWebSocketHandler(h *hub.Hub) *WebSocketHandler {
+	return &WebSocketHandler{hub: h}
+}
+
 func HandleRanking() {
 	return
 }
 
-func (h *WebSocketHandler) HandleWebSocket( /*w http.ResponseWriter,r *http.Request,*/ c *gin.Context) {
+func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 	firebaseUID, exists := c.Get("firebase_uid")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "ログインしていません"})
@@ -45,6 +49,6 @@ func (h *WebSocketHandler) HandleWebSocket( /*w http.ResponseWriter,r *http.Requ
 	client := hub.NewClient(h.hub, conn, userId)
 	h.hub.Register(client)
 
-	go client.writePump()
+	go client.WritePump()
 	go client.ReadPump()
 }
