@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	router := gin.Default()
+	// router := gin.Default()
 
 	//router.POST("/signup", handler.SignUp)
 
