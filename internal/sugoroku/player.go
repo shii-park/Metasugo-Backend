@@ -31,6 +31,10 @@ func NewPlayer(id string, position *Tile) *Player {
 	}
 }
 
+func (p *Player) GetID() string {
+	return p.id
+}
+
 //	                         __      __                        __
 //	                        |  \    |  \                      |  \
 //	______ ____    ______  _| $$_   | $$____    ______    ____| $$  _______
