@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"log"
 	"sync"
 
 	"github.com/shii-park/Metasugo-Backend/internal/event"
@@ -9,7 +10,7 @@ import (
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
 )
 
-type MoneyResponseJSON struct {
+type MoneyChangedResponse struct {
 	UserID string `json:"userID"`
 	Money  int    `json:"money"`
 }
@@ -48,16 +49,16 @@ func (gm *GameManager) onEvent(e event.Event) {
 	case event.MoneyChanged:
 		money, ok := e.Data["money"].(int)
 		if !ok {
-			// TODO: error handling
+			log.Printf("error: could not assert money to int in event data: %+v", e.Data)
 			return
 		}
-		response := MoneyResponseJSON{
+		response := MoneyChangedResponse{
 			UserID: e.PlayerID,
 			Money:  money,
 		}
 		message, err = json.Marshal(response)
 		if err != nil {
-			// TODO: error handling
+			log.Printf("error: could not marshal money changed response: %v", err)
 			return
 		}
 	}
