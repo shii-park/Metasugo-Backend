@@ -2,8 +2,10 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 
 	"github.com/shii-park/Metasugo-Backend/internal/handler"
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
@@ -12,8 +14,19 @@ import (
 )
 
 func main() {
+	//.env読み込み
+	err := godotenv.Load()
+	if err != nil {
+		log.Printf("./envファイルの読み込みに失敗しました")
+	}
+
+	credFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+	if credFile == "" {
+		log.Fatal("環境変数が設定されていません")
+	}
+
 	router := gin.Default()
-	err := middleware.InitFirebase()
+	err = middleware.InitFirebase()
 	if err != nil {
 		log.Fatal("Firebaseの初期化に失敗:", err)
 	}
