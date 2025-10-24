@@ -13,7 +13,7 @@ var tilesFS embed.FS
 var (
 	loadOnce  sync.Once
 	loadErr   error
-	tilesData map[string]interface{}
+	tilesData interface{}
 )
 
 func GetTiles() (interface{}, error) {
@@ -23,7 +23,7 @@ func GetTiles() (interface{}, error) {
 			loadErr = err
 			return
 		}
-		var m map[string]interface{}
+		var m interface{}
 		if err := json.Unmarshal(b, &m); err != nil {
 			loadErr = err
 			return

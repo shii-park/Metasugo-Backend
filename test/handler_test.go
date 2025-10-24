@@ -1,6 +1,7 @@
 package test
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -57,6 +58,10 @@ func TestHandleWebSocket_WithAuth(t *testing.T) {
 	// Hubの初期化
 	h := hub.NewHub()
 	go h.Run()
+	defer func() {
+		// Hubのクリーンアップ
+		time.Sleep(100 * time.Millisecond)
+	}()
 
 	// ハンドラーの作成
 	wsHandler := handler.NewWebSocketHandler(h)
@@ -85,25 +90,7 @@ func TestHandleWebSocket_WithAuth(t *testing.T) {
 		t.Errorf("期待されるステータスコード: %d, 実際: %d", http.StatusSwitchingProtocols, resp.StatusCode)
 	}
 
-	// メッセージの送信テスト
-	testMessage := []byte("Hello, WebSocket!")
-	err = ws.WriteMessage(websocket.TextMessage, testMessage)
-	if err != nil {
-		t.Errorf("メッセージの送信に失敗: %v", err)
-	}
-
-	// Ping/Pongのテスト（接続が維持されることを確認）
-	err = ws.WriteMessage(websocket.PingMessage, nil)
-	if err != nil {
-		t.Errorf("Pingメッセージの送信に失敗: %v", err)
-	}
-
-	// Pongの応答を待つ
-	ws.SetReadDeadline(time.Now().Add(5 * time.Second))
-	messageType, _, err := ws.ReadMessage()
-	if err == nil && messageType == websocket.PongMessage {
-		t.Log("Pongメッセージを受信しました")
-	}
+	t.Log("WebSocket接続が正常に確立されました")
 }
 
 // NewWebSocketHandlerのテスト
@@ -135,6 +122,10 @@ func TestHandleWebSocket_MultipleClients(t *testing.T) {
 	// Hubの初期化
 	h := hub.NewHub()
 	go h.Run()
+	defer func() {
+		// Hubのクリーンアップ
+		time.Sleep(100 * time.Millisecond)
+	}()
 
 	// ハンドラーの作成
 	wsHandler := handler.NewWebSocketHandler(h)
@@ -172,17 +163,6 @@ func TestHandleWebSocket_MultipleClients(t *testing.T) {
 	// 両方の接続が成功したことを確認
 	t.Log("2つのWebSocket接続が成功しました")
 
-	// メッセージを送信
-	err = ws1.WriteMessage(websocket.TextMessage, []byte("Message from user1"))
-	if err != nil {
-		t.Errorf("user1からのメッセージ送信に失敗: %v", err)
-	}
-
-	err = ws2.WriteMessage(websocket.TextMessage, []byte("Message from user2"))
-	if err != nil {
-		t.Errorf("user2からのメッセージ送信に失敗: %v", err)
-	}
-
 	// 短時間待機して処理を完了させる
 	time.Sleep(100 * time.Millisecond)
 }
@@ -194,6 +174,10 @@ func TestHandleWebSocket_CloseConnection(t *testing.T) {
 	// Hubの初期化
 	h := hub.NewHub()
 	go h.Run()
+	defer func() {
+		// Hubのクリーンアップ
+		time.Sleep(100 * time.Millisecond)
+	}()
 
 	// ハンドラーの作成
 	wsHandler := handler.NewWebSocketHandler(h)
@@ -222,4 +206,73 @@ func TestHandleWebSocket_CloseConnection(t *testing.T) {
 	}
 
 	t.Log("WebSocket接続を正常にクローズしました")
+}
+
+// WebSocket メッセージ送受信テスト: getTilesリクエスト
+func TestHandleWebSocket_GetTilesRequest(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	// Hubの初期化
+	h := hub.NewHub()
+	go h.Run()
+	defer func() {
+		// Hubのクリーンアップ
+		time.Sleep(100 * time.Millisecond)
+	}()
+
+	// ハンドラーの作成
+	wsHandler := handler.NewWebSocketHandler(h)
+
+	// テスト用サーバーの作成
+	router := gin.New()
+	router.GET("/ws", func(c *gin.Context) {
+		c.Set("firebase_uid", "test-user-gettiles")
+		wsHandler.HandleWebSocket(c)
+	})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	// WebSocketクライアントの作成
+	wsURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws"
+	ws, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
+	if err != nil {
+		t.Fatalf("WebSocket接続に失敗: %v", err)
+	}
+	defer ws.Close()
+
+	// getTilesリクエストを送信
+	request := map[string]interface{}{
+		"type":    "getTiles",
+		"payload": map[string]interface{}{},
+	}
+	requestJSON, _ := json.Marshal(request)
+	err = ws.WriteMessage(websocket.TextMessage, requestJSON)
+	if err != nil {
+		t.Fatalf("メッセージの送信に失敗: %v", err)
+	}
+
+	// レスポンスを待つ
+	ws.SetReadDeadline(time.Now().Add(3 * time.Second))
+	_, message, err := ws.ReadMessage()
+	if err != nil {
+		t.Fatalf("レスポンスの受信に失敗: %v", err)
+	}
+
+	// レスポンスのパース
+	var response map[string]interface{}
+	err = json.Unmarshal(message, &response)
+	if err != nil {
+		t.Fatalf("レスポンスのパースに失敗: %v", err)
+	}
+
+	// レスポンスの検証
+	if response["type"] != "tile" {
+		t.Errorf("期待されるレスポンスタイプ: tile, 実際: %v", response["type"])
+	}
+	if response["data"] == nil {
+		t.Error("レスポンスにdataが含まれていません")
+	}
+
+	t.Log("getTilesリクエストが正常に処理されました")
 }

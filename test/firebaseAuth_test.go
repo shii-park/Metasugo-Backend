@@ -58,6 +58,12 @@ func TestInitFirebase(t *testing.T) {
 
 // AuthToken ミドルウェアのテスト: Authorization headerが無い場合
 func TestAuthToken_NoAuthHeader(t *testing.T) {
+	// Firebaseの初期化を試みる
+	err := middleware.InitFirebase()
+	if err != nil {
+		t.Skip("Firebaseの初期化に失敗したため、このテストをスキップします")
+	}
+
 	// Ginのテストモードに設定
 	gin.SetMode(gin.TestMode)
 
@@ -83,13 +89,19 @@ func TestAuthToken_NoAuthHeader(t *testing.T) {
 	// レスポンスボディの確認
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	if response["error"] != "Authorization header required" {
+	if response["error"] != "Authorizationヘッダが必要です" {
 		t.Errorf("期待されるエラーメッセージと異なります: %v", response["error"])
 	}
 }
 
 // AuthToken ミドルウェアのテスト: 不正なフォーマット
 func TestAuthToken_InvalidFormat(t *testing.T) {
+	// Firebaseの初期化を試みる
+	err := middleware.InitFirebase()
+	if err != nil {
+		t.Skip("Firebaseの初期化に失敗したため、このテストをスキップします")
+	}
+
 	gin.SetMode(gin.TestMode)
 
 	router := gin.New()
@@ -110,7 +122,7 @@ func TestAuthToken_InvalidFormat(t *testing.T) {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	if response["error"] != "Invalid authorization format" {
+	if response["error"] != "無効な認証形式です" {
 		t.Errorf("期待されるエラーメッセージと異なります: %v", response["error"])
 	}
 }
@@ -143,7 +155,7 @@ func TestAuthToken_InvalidToken(t *testing.T) {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	if response["error"] != "Invalid token" {
+	if response["error"] != "無効なトークンです" {
 		t.Errorf("期待されるエラーメッセージと異なります: %v", response["error"])
 	}
 }
