@@ -1,6 +1,8 @@
 package hub
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -74,5 +76,21 @@ func (c *Client) WritePump() {
 				return
 			}
 		}
+	}
+}
+
+func (c *Client) SendJSON(v interface{}) error {
+	if c == nil || c.send == nil {
+		return errors.New("invalid client")
+	}
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	select {
+	case c.send <- b:
+		return nil
+	default:
+		return errors.New("send buffer full")
 	}
 }
