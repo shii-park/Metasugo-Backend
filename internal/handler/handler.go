@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -22,6 +23,11 @@ var upgrader = websocket.Upgrader{
 
 type WebSocketHandler struct {
 	hub *hub.Hub
+}
+
+type wsRequest struct {
+	Type    string                 `json:"type"`
+	Payload map[string]interface{} `json:"payload"`
 }
 
 /**************************************************/
@@ -49,7 +55,31 @@ func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 	h.hub.Register(client)
 
 	go client.WritePump()
-	go client.ReadPump()
+	//go client.ReadPump()
+
+	defer func() {
+		h.hub.Unregister(client)
+		conn.Close()
+	}()
+
+	for {
+		_, msg, err := conn.ReadMessage()
+		if err != nil {
+			log.Printf("WebSocket読み込みエラー: %v", err)
+			return
+		}
+		var req wsRequest
+		if err := json.Unmarshal(msg, &req); err != nil {
+			client.SendError(err)
+			continue
+		}
+		switch req.Type {
+		case "getTile", "getTiles":
+			h.HandleGetTile(client, req.Payload)
+		default:
+			client.SendError(nil) //TODO:エラー内容修正
+		}
+	}
 }
 
 func (h *WebSocketHandler) HandleGetTile(client *hub.Client, request map[string]interface{}) {

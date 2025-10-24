@@ -94,3 +94,15 @@ func (c *Client) SendJSON(v interface{}) error {
 		return errors.New("send buffer full")
 	}
 }
+
+func (c *Client) SendError(err error) error { //TODO: 引数の修正
+	if c == nil || err == nil {
+		return nil
+	}
+	payload := map[string]interface{}{
+		"type":    "error",
+		"message": err.Error(),
+		"ts":      time.Now().Unix(),
+	}
+	return c.SendJSON(payload)
+}
