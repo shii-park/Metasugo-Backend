@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"os"
 	"sync"
 )
@@ -16,19 +15,20 @@ var (
 
 func GetTiles() (interface{}, error) {
 	loadOnce.Do(func() {
-		file, err := os.Open("/tiles.json")
+		file, err := os.Open("TILES_JSON_PATH") //TODO: パスを環境変数に設定
 		if err != nil {
 			loadErr = err
 			return
 		}
 		defer file.Close()
-		var tilesData map[string]interface{}
+		var m map[string]interface{}
 
 		decoder := json.NewDecoder(file)
-		if err = decoder.Decode(&tilesData); err != nil {
-			log.Fatal("盤面ファイルの読み込みに失敗しました: ", err)
+		if err = decoder.Decode(&m); err != nil {
+			loadErr = err
 			return
 		}
+		tilesData = m
 	})
 	if loadErr != nil {
 		return nil, loadErr

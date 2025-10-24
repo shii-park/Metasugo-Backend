@@ -25,6 +25,10 @@ func main() {
 	if credFile == "" {
 		log.Fatal("環境変数GOOGLE_APPLICATION_CREDENTIALSが設定されていません")
 	}
+	tilesFile := os.Getenv("TILES_JSON_PATH")
+	if tilesFile == "" {
+		log.Fatal("環境変数TILES_JSON_PATHが設定されていません")
+	}
 
 	router := gin.Default()
 	err = middleware.InitFirebase()

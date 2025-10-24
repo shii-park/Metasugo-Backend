@@ -57,6 +57,7 @@ func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc
 
 		go client.WritePump()
 		//go client.ReadPump()
+
 		/*ここ以下の処理はReadPumpに移すかもしれません*/
 		defer func() {
 			h.hub.Unregister(client)
