@@ -1,14 +1,12 @@
 package service
 
 import (
-	"embed"
 	"encoding/json"
 	"errors"
+	"log"
+	"os"
 	"sync"
 )
-
-//go:embed assets/tiles.json
-var tilesFS embed.FS
 
 var (
 	loadOnce  sync.Once
@@ -18,19 +16,20 @@ var (
 
 func GetTiles() (interface{}, error) {
 	loadOnce.Do(func() {
-		b, err := tilesFS.ReadFile("assets/tiles.json")
+		file, err := os.Open("/tiles.json")
 		if err != nil {
 			loadErr = err
 			return
 		}
-		var m map[string]interface{}
-		if err := json.Unmarshal(b, &m); err != nil {
-			loadErr = err
+		defer file.Close()
+		var tilesData map[string]interface{}
+
+		decoder := json.NewDecoder(file)
+		if err = decoder.Decode(&tilesData); err != nil {
+			log.Fatal("盤面ファイルの読み込みに失敗しました: ", err)
 			return
 		}
-		tilesData = m
 	})
-
 	if loadErr != nil {
 		return nil, loadErr
 	}
