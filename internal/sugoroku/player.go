@@ -4,6 +4,8 @@ import (
 	"errors"
 	"math/rand"
 	"sync"
+
+	"github.com/shii-park/Metasugo-Backend/internal/event"
 )
 
 type Player struct {
@@ -11,19 +13,10 @@ type Player struct {
 	id       string
 	money    int
 	mu       sync.Mutex
+	OnEvent  func(e event.Event)
 }
 
-//                                            __                                      __
-//                                           |  \                                    |  \
-//   _______   ______   _______    _______  _| $$_     ______   __    __   _______  _| $$_     ______    ______
-//  /       \ /      \ |       \  /       \|   $$ \   /      \ |  \  |  \ /       \|   $$ \   /      \  /      \
-// |  $$$$$$$|  $$$$$$\| $$$$$$$\|  $$$$$$$ \$$$$$$  |  $$$$$$\| $$  | $$|  $$$$$$$ \$$$$$$  |  $$$$$$\|  $$$$$$\
-// | $$      | $$  | $$| $$  | $$ \$$    \   | $$ __ | $$   \$$| $$  | $$| $$        | $$ __ | $$  | $$| $$   \$$
-// | $$_____ | $$__/ $$| $$  | $$ _\$$$$$$\  | $$|  \| $$      | $$__/ $$| $$_____   | $$|  \| $$__/ $$| $$
-//  \$$     \ \$$    $$| $$  | $$|       $$   \$$  $$| $$       \$$    $$ \$$     \   \$$  $$ \$$    $$| $$
-//   \$$$$$$$  \$$$$$$  \$$   \$$ \$$$$$$$     \$$$$  \$$        \$$$$$$   \$$$$$$$    \$$$$   \$$$$$$  \$$
-//
-
+// プレイヤーのインスタンスを生成する
 func NewPlayer(id string, position *Tile) *Player {
 	return &Player{
 		position: position,
@@ -31,26 +24,16 @@ func NewPlayer(id string, position *Tile) *Player {
 	}
 }
 
-func (p *Player) GetID() string {
-	return p.id
-}
-
-//	                         __      __                        __
-//	                        |  \    |  \                      |  \
-//	______ ____    ______  _| $$_   | $$____    ______    ____| $$  _______
-//
-// |      \    \  /      \|   $$ \  | $$    \  /      \  /      $$ /       \
-// | $$$$$$\$$$$\|  $$$$$$\\$$$$$$  | $$$$$$$\|  $$$$$$\|  $$$$$$$|  $$$$$$$
-// | $$ | $$ | $$| $$    $$ | $$ __ | $$  | $$| $$  | $$| $$  | $$ \$$    \
-// | $$ | $$ | $$| $$$$$$$$ | $$|  \| $$  | $$| $$__/ $$| $$__| $$ _\$$$$$$\
-// | $$ | $$ | $$ \$$     \  \$$  $$| $$  | $$ \$$    $$ \$$    $$|       $$
-//	\$$  \$$  \$$  \$$$$$$$   \$$$$  \$$   \$$  \$$$$$$   \$$$$$$$ \$$$$$$$
-
-// TODO: エラー文の追加、一時的にnextsの1こ目のマスに進むようになっている
+// TODO: エラー文の追加、一時的にnextsの1こ目のマスに進むようになっている、ゴールの処理を書かなければならない
 func (p *Player) moveNextTile() {
 	if len(p.position.nexts) > 0 {
 		p.position = p.position.nexts[0]
 	}
+}
+
+// プレイヤーのIDを返すメソッド
+func (p *Player) GetID() string {
+	return p.id
 }
 
 // TODO: エラー文の追加、一時的にprevsの1こ目のマスに進むようになっている
@@ -74,6 +57,7 @@ func (p *Player) MoveByDiceRoll(steps int, g *Game) error {
 	return nil
 }
 
+// プレイヤーのお金を増やすメソッド
 func (p *Player) Profit(amount int) error {
 	if amount < 0 {
 		return errors.New("cannot add money by negative amount")
@@ -81,9 +65,19 @@ func (p *Player) Profit(amount int) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.money += amount
+	if p.OnEvent != nil {
+		p.OnEvent(event.Event{
+			Type:     event.MoneyChanged,
+			PlayerID: p.id,
+			Data: map[string]interface{}{
+				"money": p.money,
+			},
+		})
+	}
 	return nil
 }
 
+// プレイヤーのお金を減らすメソッド
 func (p *Player) Loss(amount int) error {
 	if amount < 0 {
 		return errors.New("cannot decrease money by negative amount")
@@ -91,9 +85,19 @@ func (p *Player) Loss(amount int) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.money -= amount
+	if p.OnEvent != nil {
+		p.OnEvent(event.Event{
+			Type:     event.MoneyChanged,
+			PlayerID: p.id,
+			Data: map[string]interface{}{
+				"money": p.money,
+			},
+		})
+	}
 	return nil
 }
 
+// 特定のプレイヤーのお金を増やす関数
 func ProfitForTargetPlayers(players []*Player, amount int) error {
 	if amount < 0 {
 		return errors.New("cannot add money by negative amount")
@@ -104,6 +108,7 @@ func ProfitForTargetPlayers(players []*Player, amount int) error {
 	return nil
 }
 
+// 特定のプレイヤーのお金を減らす関数
 func LossForTargetPlayers(players []*Player, amount int) error {
 	if amount < 0 {
 		return errors.New("cannot decrease money by negative amount")
@@ -114,6 +119,7 @@ func LossForTargetPlayers(players []*Player, amount int) error {
 	return nil
 }
 
+// 1~6までのランダムな数を返す関数
 func RollDice() int {
 	return rand.Intn(6) + 1
 }
