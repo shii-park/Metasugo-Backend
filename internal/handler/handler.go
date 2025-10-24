@@ -57,6 +57,7 @@ func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc
 
 		go client.WritePump()
 		//go client.ReadPump()
+		/*ここ以下の処理はReadPumpに移すかもしれません*/
 		defer func() {
 			h.hub.Unregister(client)
 			conn.Close()
@@ -70,16 +71,20 @@ func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc
 			}
 			var req wsRequest
 			if err := json.Unmarshal(msg, &req); err != nil {
-				client.SendError(err)
+				_ = client.SendJSON(gin.H{ //TODO: sendErrorをつかうようにする
+					"type": "error", "code": "invalid_json", "message": "JSONの解析に失敗しました"})
 				continue
 			}
 			switch req.Type {
 			case "getTile", "getTiles":
 				h.HandleGetTile(client, req.Payload)
 			default:
-				client.SendError(nil) //TODO:エラー内容修正
+				_ = client.SendJSON(gin.H{ //TODO: sendErrorをつかうようにする
+					"type": "error", "code": "unknown_request", "message": "未対応のリクエストです",
+				})
 			}
 		}
+		/*ここ以上の処理はReadPumpに移すかもしれません*/
 	}
 }
 
