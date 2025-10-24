@@ -9,6 +9,7 @@ import (
 
 	//"github.com/shii-park/Metasugo-Backend/internal/middleware"
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
+	"github.com/shii-park/Metasugo-Backend/internal/service"
 )
 
 /**************************************************/
@@ -29,9 +30,6 @@ func NewWebSocketHandler(h *hub.Hub) *WebSocketHandler {
 }
 
 /**************************************************/
-func HandleRanking() {
-	return
-}
 
 func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 	userId := c.GetString("firebase_uid")
@@ -52,4 +50,13 @@ func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 
 	go client.WritePump()
 	go client.ReadPump()
+}
+
+func (h *WebSocketHandler) HandleGetTile(client *hub.Client, request map[string]interface{}) {
+	tile, err := service.GetTiles()
+	if err != nil {
+		_ = client.SendJSON(gin.H{"type": "error", "message": "タイルの取得に失敗しました"})
+		return
+	}
+	_ = client.SendJSON(gin.H{"type": "tile", "data": tile})
 }

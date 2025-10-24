@@ -1,32 +1,41 @@
 package service
 
 import (
+	"embed"
 	"encoding/json"
-	"log"
-	"os"
+	"errors"
+	"sync"
 )
 
-type ResponceData struct {
-	Id     uint   "json:'id'"
-	Kind   string "json:'kind'"
-	Detail string "json:'detail'"
-	PrevId int    "json:'prev_id'"
-	NextId int    "json:'next_id'"
-}
+//go:embed assets/tiles.json
+var tilesFS embed.FS
 
-func GetData(params map[string]interface{}) (interface{}, error) {
-	file, err := os.Open("../../tiles.json")
-	if err != nil {
-		log.Fatal("盤面ファイルを開けませんでした: ", err)
-		return nil, err
+var (
+	loadOnce  sync.Once
+	loadErr   error
+	tilesData map[string]interface{}
+)
+
+func GetTiles() (interface{}, error) {
+	loadOnce.Do(func() {
+		b, err := tilesFS.ReadFile("assets/tiles.json")
+		if err != nil {
+			loadErr = err
+			return
+		}
+		var m map[string]interface{}
+		if err := json.Unmarshal(b, &m); err != nil {
+			loadErr = err
+			return
+		}
+		tilesData = m
+	})
+
+	if loadErr != nil {
+		return nil, loadErr
 	}
-	defer file.Close()
-	var tilesData map[string]interface{}
-
-	decoder := json.NewDecoder(file)
-	if err = decoder.Decode(&tilesData); err != nil {
-		log.Fatal("盤面ファイルの読み込みに失敗しました: ", err)
-		return nil, err
+	if tilesData == nil {
+		return nil, errors.New("盤面データを読み込めませんでした")
 	}
 	return tilesData, nil
 }
