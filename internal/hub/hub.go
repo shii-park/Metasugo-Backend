@@ -24,6 +24,10 @@ func (h *Hub) Unregister(c *Client) {
 	h.unregister <- c
 }
 
+func (h *Hub) Broadcast(message []byte) {
+	h.broadcast <- message
+}
+
 func (h *Hub) Run() {
 	for {
 		select {
