@@ -1,6 +1,8 @@
 package hub
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -75,4 +77,32 @@ func (c *Client) WritePump() {
 			}
 		}
 	}
+}
+
+func (c *Client) SendJSON(v interface{}) error {
+	if c == nil || c.send == nil {
+		return errors.New("invalid client")
+	}
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	select {
+	case c.send <- b:
+		return nil
+	default:
+		return errors.New("send buffer full")
+	}
+}
+
+func (c *Client) SendError(err error) error { //TODO: 引数の修正
+	if c == nil || err == nil {
+		return nil
+	}
+	payload := map[string]interface{}{
+		"type":    "error",
+		"message": err.Error(),
+		"ts":      time.Now().Unix(),
+	}
+	return c.SendJSON(payload)
 }

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	//"github.com/shii-park/Metasugo-Backend/internal/middleware"
 	"github.com/shii-park/Metasugo-Backend/internal/game"
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
+	"github.com/shii-park/Metasugo-Backend/internal/service"
 )
 
 var upgrader = websocket.Upgrader{
@@ -23,12 +25,13 @@ type WebSocketHandler struct {
 	hub *hub.Hub
 }
 
-func NewWebSocketHandler(h *hub.Hub) *WebSocketHandler {
-	return &WebSocketHandler{hub: h}
+type wsRequest struct {
+	Type    string                 `json:"type"`
+	Payload map[string]interface{} `json:"payload"`
 }
 
-func HandleRanking(c *gin.Context) {
-	return
+func NewWebSocketHandler(h *hub.Hub) *WebSocketHandler {
+	return &WebSocketHandler{hub: h}
 }
 
 // Websocket接続時のハンドラー
@@ -53,6 +56,44 @@ func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc
 		gm.RegisterPlayerClient(userID, client)
 
 		go client.WritePump()
-		go client.ReadPump()
+		//go client.ReadPump()
+
+		/*ここ以下の処理はReadPumpに移すかもしれません*/
+		defer func() {
+			h.hub.Unregister(client)
+			conn.Close()
+		}()
+
+		for {
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				log.Printf("WebSocket読み込みエラー: %v", err)
+				return
+			}
+			var req wsRequest
+			if err := json.Unmarshal(msg, &req); err != nil {
+				_ = client.SendJSON(gin.H{ //TODO: sendErrorをつかうようにする
+					"type": "error", "code": "invalid_json", "message": "JSONの解析に失敗しました"})
+				continue
+			}
+			switch req.Type {
+			case "getTile", "getTiles":
+				h.HandleGetTile(client, req.Payload)
+			default:
+				_ = client.SendJSON(gin.H{ //TODO: sendErrorをつかうようにする
+					"type": "error", "code": "unknown_request", "message": "未対応のリクエストです",
+				})
+			}
+		}
+		/*ここ以上の処理はReadPumpに移すかもしれません*/
 	}
+}
+
+func (h *WebSocketHandler) HandleGetTile(client *hub.Client, request map[string]interface{}) {
+	tile, err := service.GetTiles()
+	if err != nil {
+		_ = client.SendJSON(gin.H{"type": "error", "message": "タイルの取得に失敗しました"})
+		return
+	}
+	_ = client.SendJSON(gin.H{"type": "tile", "data": tile})
 }
