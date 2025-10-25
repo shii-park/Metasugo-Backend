@@ -2,10 +2,12 @@ package main
 
 import (
 	"log"
+	"os"
 
 	//"github.com/Metasugo-Backend/internal/handler"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/shii-park/Metasugo-Backend/internal/game"
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
 
@@ -15,8 +17,21 @@ import (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println(".envファイルの読み込みに失敗: ", err)
+	}
+	credFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+	if credFile == "" {
+		log.Fatal("環境変数GOOGLE_APPLICATION_CREDENTIALSが設定されていません")
+	}
+	tilesFile := os.Getenv("TILES_JSON_PATH")
+	if tilesFile == "" {
+		log.Fatal("環境変数TILES_JSON_PATHが設定されていません")
+	}
+
 	router := gin.Default()
-	err := middleware.InitFirebase()
+	err = middleware.InitFirebase()
 	if err != nil {
 		log.Fatal("Firebaseの初期化に失敗:", err)
 	}
@@ -38,9 +53,8 @@ func main() {
 		ranking.GET("/user/:user_id") //特定ユーザのスコア取得
 		ranking.GET("/me")            //自分のランクを取得
 	}
-	router.GET("/ws/connection", middleware.AuthToken(), wsHandler.HandleWebSocket)
+	router.GET("/ws/connection", middleware.AuthToken(), wsHandler.HandleWebSocket(gm))
 	/**********エンドポイントここまで**********/
-
 
 	router.Run()
 }

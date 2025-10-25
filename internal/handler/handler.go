@@ -30,14 +30,9 @@ type wsRequest struct {
 	Payload map[string]interface{} `json:"payload"`
 }
 
-/**************************************************/
-
 func NewWebSocketHandler(h *hub.Hub) *WebSocketHandler {
 	return &WebSocketHandler{hub: h}
 }
-
-/**************************************************/
-
 
 // Websocket接続時のハンドラー
 func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc {
@@ -61,44 +56,36 @@ func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc
 		gm.RegisterPlayerClient(userID, client)
 
 		go client.WritePump()
-		go client.ReadPump()
-	}
-	//HTTPをWebSocketに昇格
+		//go client.ReadPump()
 
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		log.Printf("Failed to upgrade connection: %v", err)
-		return
-	}
+		/*ここ以下の処理はReadPumpに移すかもしれません*/
+		defer func() {
+			h.hub.Unregister(client)
+			conn.Close()
+		}()
 
-	client := hub.NewClient(h.hub, conn, userId)
-	h.hub.Register(client)
-
-	go client.WritePump()
-	//go client.ReadPump()
-
-	defer func() {
-		h.hub.Unregister(client)
-		conn.Close()
-	}()
-
-	for {
-		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			log.Printf("WebSocket読み込みエラー: %v", err)
-			return
+		for {
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				log.Printf("WebSocket読み込みエラー: %v", err)
+				return
+			}
+			var req wsRequest
+			if err := json.Unmarshal(msg, &req); err != nil {
+				_ = client.SendJSON(gin.H{ //TODO: sendErrorをつかうようにする
+					"type": "error", "code": "invalid_json", "message": "JSONの解析に失敗しました"})
+				continue
+			}
+			switch req.Type {
+			case "getTile", "getTiles":
+				h.HandleGetTile(client, req.Payload)
+			default:
+				_ = client.SendJSON(gin.H{ //TODO: sendErrorをつかうようにする
+					"type": "error", "code": "unknown_request", "message": "未対応のリクエストです",
+				})
+			}
 		}
-		var req wsRequest
-		if err := json.Unmarshal(msg, &req); err != nil {
-			client.SendError(err)
-			continue
-		}
-		switch req.Type {
-		case "getTile", "getTiles":
-			h.HandleGetTile(client, req.Payload)
-		default:
-			client.SendError(nil) //TODO:エラー内容修正
-		}
+		/*ここ以上の処理はReadPumpに移すかもしれません*/
 	}
 }
 
@@ -109,6 +96,4 @@ func (h *WebSocketHandler) HandleGetTile(client *hub.Client, request map[string]
 		return
 	}
 	_ = client.SendJSON(gin.H{"type": "tile", "data": tile})
-=======
-
 }
