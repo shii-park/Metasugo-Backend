@@ -132,7 +132,7 @@ func TestHandleRanking(t *testing.T) {
 		}
 	}()
 
-	handler.HandleRanking(nil)
+	handler.HandleRanking()
 }
 
 // WebSocketハンドラーの統合テスト: 複数クライアント
