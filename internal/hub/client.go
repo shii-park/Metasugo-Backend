@@ -10,18 +10,18 @@ import (
 )
 
 type Client struct {
-	hub    *Hub
-	conn   *websocket.Conn
-	send   chan []byte
-	userID string
+	Hub      *Hub
+	Conn     *websocket.Conn
+	Send     chan []byte
+	PlayerID string
 }
 
-func NewClient(hub *Hub, conn *websocket.Conn, userID string) *Client {
+func NewClient(hub *Hub, conn *websocket.Conn, playerID string) *Client {
 	return &Client{
-		hub:    hub,
-		conn:   conn,
-		send:   make(chan []byte, 256),
-		userID: userID,
+		Hub:      hub,
+		Conn:     conn,
+		Send:     make(chan []byte, 256),
+		PlayerID: playerID,
 	}
 }
 
@@ -33,18 +33,18 @@ const (
 
 func (c *Client) ReadPump() {
 	defer func() {
-		c.hub.unregister <- c
-		c.conn.Close()
+		c.Hub.unregister <- c
+		c.Conn.Close()
 	}()
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 
-	c.conn.SetPongHandler(func(string) error {
-		c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	c.Conn.SetPongHandler(func(string) error {
+		c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 		return nil
 	})
 	// TODO:よみとった　msgの処理を書く
 	for {
-		_, message, err := c.conn.ReadMessage()
+		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
 			break
 		}
@@ -57,22 +57,22 @@ func (c *Client) WritePump() {
 
 	defer func() {
 		ticker.Stop()
-		c.conn.Close()
+		c.Conn.Close()
 	}()
 
 	for {
 		select {
-		case message, ok := <-c.send:
+		case message, ok := <-c.Send:
 			if !ok {
-				c.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+				c.Conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 				return
 			}
-			if err := c.conn.WriteMessage(websocket.TextMessage, message); err != nil {
+			if err := c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
 				return
 			}
 		case <-ticker.C:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
 		}
@@ -80,7 +80,7 @@ func (c *Client) WritePump() {
 }
 
 func (c *Client) SendJSON(v interface{}) error {
-	if c == nil || c.send == nil {
+	if c == nil || c.Send == nil {
 		return errors.New("invalid client")
 	}
 	b, err := json.Marshal(v)
@@ -88,7 +88,7 @@ func (c *Client) SendJSON(v interface{}) error {
 		return err
 	}
 	select {
-	case c.send <- b:
+	case c.Send <- b:
 		return nil
 	default:
 		return errors.New("send buffer full")

@@ -8,7 +8,9 @@ import (
 )
 
 type Effect interface {
-	Apply(player *Player, game *Game) error
+	Apply(player *Player, game *Game, choice interface{}) error
+	RequiresUserInput() bool
+	GetOptions(tile *Tile) interface{}
 }
 
 const QuizJSONPath = "./quizzes.json"
@@ -86,28 +88,89 @@ type Quiz struct {
 // | $$  \$ | $$ \$$     \  \$$  $$| $$  | $$ \$$    $$ \$$    $$|       $$
 //  \$$      \$$  \$$$$$$$   \$$$$  \$$   \$$  \$$$$$$   \$$$$$$$ \$$$$$$$
 
-func (e ProfitEffect) Apply(p *Player, g *Game) error {
+// お金を増やす効果
+func (e ProfitEffect) RequiresUserInput() bool { return false }
+
+func (e ProfitEffect) GetOptions(tile *Tile) interface{} { return nil }
+
+func (e ProfitEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	err := p.Profit(e.Amount)
 	return err
 }
 
-func (e LossEffect) Apply(p *Player, g *Game) error {
+// お金を減らす効果
+func (e LossEffect) RequiresUserInput() bool { return false }
+
+func (e LossEffect) GetOptions(tile *Tile) interface{} { return nil }
+
+func (e LossEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	err := p.Loss(e.Amount)
 	return err
 }
 
-// TODO効果の実装
-func (e QuizEffect) Apply(p *Player, g *Game) error {
+// クイズ効果
+func (e QuizEffect) RequiresUserInput() bool { return true }
+
+func (e QuizEffect) GetOptions(tile *Tile) interface{} { return nil }
+
+func (e QuizEffect) Apply(p *Player, g *Game, choice interface{}) error {
 
 	return nil
 }
 
-// TODO効果の実装
-func (e BranchEffect) Apply(p *Player, g *Game) error {
+// 分かれ道
+func (e BranchEffect) RequiresUserInput() bool { return true }
+
+func (e BranchEffect) GetOptions(tile *Tile) interface{} {
+	options := make([]int, len(tile.nexts))
+	for i, nextTile := range tile.nexts {
+		options[i] = nextTile.id
+	}
+	return options
+}
+
+func (e BranchEffect) Apply(p *Player, g *Game, choice interface{}) error {
+	var chosenTileID int
+	// float64 と int の両方の型に対応
+	switch v := choice.(type) {
+	case int:
+		chosenTileID = v
+	case float64:
+		chosenTileID = int(v)
+	default:
+		return fmt.Errorf("invalid choice for branch: unexpected type %T", v)
+	}
+
+	// 選択肢が現在の分岐マスの次のタイルとして有効か検証する
+	isValidChoice := false
+	for _, nextTile := range p.GetPosition().nexts {
+		if nextTile.GetID() == chosenTileID {
+			isValidChoice = true
+			break
+		}
+	}
+
+	if !isValidChoice {
+		return fmt.Errorf("invalid choice for branch: tile %d is not a valid next tile", chosenTileID)
+	}
+
+	// プレイヤーの位置を選択されたタイルに更新
+	nextTile, exists := g.tileMap[chosenTileID]
+	if !exists {
+		// このエラーは上のバリデーションにより通常発生しないはず
+		return errors.New("chosen tile does not exist")
+	}
+
+	p.position = nextTile
 	return nil
 }
 
-func (e OverallEffect) Apply(p *Player, g *Game) error {
+// 全体効果
+func (e OverallEffect) RequiresUserInput() bool { return false }
+
+func (e OverallEffect) GetOptions(tile *Tile) interface{} { return nil }
+
+func (e OverallEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	targetPlayers := g.GetAllPlayers()
 
 	otherPlayers := make([]*Player, 0, len(targetPlayers)-1)
@@ -133,7 +196,12 @@ func (e OverallEffect) Apply(p *Player, g *Game) error {
 	return nil
 }
 
-func (e NeighborEffect) Apply(p *Player, g *Game) error {
+// 隣人効果
+func (e NeighborEffect) RequiresUserInput() bool { return false }
+
+func (e NeighborEffect) GetOptions(tile *Tile) interface{} { return nil }
+
+func (e NeighborEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	targetPlayers := g.GetNeighbors(p)
 	if e.ProfitAmount > 0 {
 		// 全体にお金をもらう
@@ -151,17 +219,31 @@ func (e NeighborEffect) Apply(p *Player, g *Game) error {
 	return nil
 }
 
-// TODO効果の実装
-func (e RequireEffect) Apply(p *Player, g *Game) error {
+// 条件分岐
+func (e RequireEffect) RequiresUserInput() bool { return false }
+
+func (e RequireEffect) GetOptions(tile *Tile) interface{} { return nil }
+
+func (e RequireEffect) Apply(p *Player, g *Game, choice interface{}) error {
 
 	return nil
 }
 
-func (e GambleEffect) Apply(p *Player, g *Game) error {
+// ギャンブル効果
+func (e GambleEffect) RequiresUserInput() bool { return true }
+
+func (e GambleEffect) GetOptions(tile *Tile) interface{} { return nil }
+
+func (e GambleEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	return nil
 }
 
-func (e NoEffect) Apply(p *Player, g *Game) error {
+// 効果なし
+func (e NoEffect) RequiresUserInput() bool { return false }
+
+func (e NoEffect) GetOptions(tile *Tile) interface{} { return nil }
+
+func (e NoEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	return nil
 }
 

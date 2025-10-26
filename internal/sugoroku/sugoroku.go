@@ -1,6 +1,7 @@
 package sugoroku
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 )
@@ -58,16 +59,16 @@ func NewGameWithTilesForTest(path string) *Game {
 //  \$$  \$$  \$$  \$$$$$$$   \$$$$  \$$   \$$  \$$$$$$   \$$$$$$$ \$$$$$$$
 //
 
-func (g *Game) AddPlayer(id string) (*Player, error) {
+func (g *Game) AddPlayer(playerID string) (*Player, error) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	if _, exists := g.players[id]; exists {
-		return nil, fmt.Errorf("player with id %s already exists", id)
+	if _, exists := g.players[playerID]; exists {
+		return nil, fmt.Errorf("player with id %s already exists", playerID)
 	}
 
-	player := NewPlayer(id, g.tileMap[InitialTileID])
-	g.players[id] = player
+	player := NewPlayer(playerID, g.tileMap[InitialTileID])
+	g.players[playerID] = player
 
 	return player, nil
 }
@@ -113,8 +114,10 @@ func (g *Game) GetNeighbors(p *Player) []*Player { // 計算量がプレイヤ�
 	return targetPlayers
 }
 
-func DistributeMoney(players []*Player, amount int) int {
-	playerNum := len(players)
-	amountPerPlayers := amount / playerNum
-	return amountPerPlayers
+func (g *Game) GetPlayer(playerID string) (*Player, error) {
+	player, exist := g.players[playerID]
+	if !exist {
+		return nil, errors.New("the player does not exist")
+	}
+	return player, nil
 }

@@ -2,7 +2,6 @@ package sugoroku
 
 import (
 	"errors"
-	"math/rand"
 	"sync"
 
 	"github.com/shii-park/Metasugo-Backend/internal/event"
@@ -31,11 +30,6 @@ func (p *Player) moveNextTile() {
 	}
 }
 
-// プレイヤーのIDを返すメソッド
-func (p *Player) GetID() string {
-	return p.id
-}
-
 // TODO: エラー文の追加、一時的にprevsの1こ目のマスに進むようになっている
 func (p *Player) movePrevTile() {
 	if len(p.position.prevs) > 0 {
@@ -43,18 +37,13 @@ func (p *Player) movePrevTile() {
 	}
 }
 
-func (p *Player) MoveByDiceRoll(steps int, g *Game) error {
+func (p *Player) Move(steps int) {
 	for i := 0; i < steps; i++ {
 		p.moveNextTile()
 		if p.position.kind == branch {
-			break
+			return
 		}
 	}
-
-	if err := p.position.effect.Apply(p, g); err != nil {
-		return err
-	}
-	return nil
 }
 
 // プレイヤーのお金を増やすメソッド
@@ -119,7 +108,15 @@ func LossForTargetPlayers(players []*Player, amount int) error {
 	return nil
 }
 
-// 1~6までのランダムな数を返す関数
-func RollDice() int {
-	return rand.Intn(6) + 1
+// プレイヤーのIDを返すメソッド
+func (p *Player) GetID() string {
+	return p.id
+}
+
+func (p *Player) GetPosition() *Tile {
+	return p.position
+}
+
+func (p *Player) GetMoney() int {
+	return p.money
 }
