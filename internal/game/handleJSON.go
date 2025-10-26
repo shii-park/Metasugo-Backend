@@ -46,7 +46,7 @@ func (gm *GameManager) broadcastPlayerMoved(userID string, newPosition int) {
 func (gm *GameManager) handleBranchInput(p *sugoroku.Player, t *sugoroku.Tile, effect sugoroku.Effect) error {
 	options := effect.GetOptions(t)
 	event := map[string]interface{}{
-		"type": "USER_CHOICE_REQUIRED",
+		"type": "BRANCH_CHOICE_REQUIRED",
 		"payload": map[string]interface{}{
 			"tile_id": t.GetID(),
 			"options": options,
@@ -58,7 +58,7 @@ func (gm *GameManager) handleBranchInput(p *sugoroku.Player, t *sugoroku.Tile, e
 func (gm *GameManager) handleGambleInput(p *sugoroku.Player, t *sugoroku.Tile, effect sugoroku.Effect) error {
 	options := effect.GetOptions(t)
 	event := map[string]interface{}{
-		"type": "USER_CHOICE_REQUIRED",
+		"type": "GAMBLE_CHOICE_REQUIRED",
 		"payload": map[string]interface{}{
 			"tile_id": t.GetID(),
 			"options": options,
@@ -69,7 +69,7 @@ func (gm *GameManager) handleGambleInput(p *sugoroku.Player, t *sugoroku.Tile, e
 func (gm *GameManager) handleQuizInput(p *sugoroku.Player, t *sugoroku.Tile, effect sugoroku.Effect) error {
 	options := effect.GetOptions(t)
 	event := map[string]interface{}{
-		"type": "USER_CHOICE_REQUIRED",
+		"type": "QUIZ_CHOICE_REQUIRED",
 		"payload": map[string]interface{}{
 			"tile_id": t.GetID(),
 			"options": options,

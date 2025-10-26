@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "kind": "normal",
+    "detail": "スタート",
+    "effect": { "type": "no_effect" },
+    "prev_ids": [],
+    "next_ids": [2]
+  },
+  {
+    "id": 2,
+    "kind": "profit",
+    "detail": "利益マス",
+    "effect": { "type": "profit", "amount": 10 },
+    "prev_ids": [1],
+    "next_ids": [3]
+  },
+  {
+    "id": 3,
+    "kind": "quiz",
+    "detail": "クイズマス",
+    "effect": { "type": "quiz", "quiz_id": 1, "amount": 50 },
+    "prev_ids": [2],
+    "next_ids": [4]
+  },
+  {
+    "id": 4,
+    "kind": "branch",
+    "detail": "分岐マス",
+    "effect": { "type": "branch" },
+    "prev_ids": [3],
+    "next_ids": [5, 6]
+  },
+  {
+    "id": 5,
+    "kind": "normal",
+    "detail": "分岐A",
+    "effect": { "type": "no_effect" },
+    "prev_ids": [4],
+    "next_ids": []
+  },
+  {
+    "id": 6,
+    "kind": "normal",
+    "detail": "分岐B",
+    "effect": { "type": "no_effect" },
+    "prev_ids": [4],
+    "next_ids": []
+  }
+]
