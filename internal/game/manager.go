@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"sync"
 
@@ -63,4 +64,36 @@ func (gm *GameManager) onEvent(e event.Event) {
 		}
 	}
 	gm.hub.Broadcast(message)
+}
+
+func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
+	player, err := m.game.GetPlayer(playerID)
+	if err != nil {
+		return errors.New("Invalid player id")
+	}
+	player.Move(steps)
+
+	currentTile := player.GetPosition()
+	effect := currentTile.GetEffect()
+
+	// プレイヤーからの入力が必要な場合
+	if effect.RequiresUserInput() {
+		options := effect.GetOptions(currentTile)
+
+		event := map[string]interface{}{
+			"type": "USER_CHOICE_REQUIRED",
+			"payload": map[string]interface{}{
+				"tile_id": currentTile.GetID(),
+				"options": options,
+			},
+		}
+		return m.hub.SendToPlayer(playerID, event)
+
+	} else {
+		if err := effect.Apply(player, m.game, nil); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
