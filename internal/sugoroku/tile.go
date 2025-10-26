@@ -185,3 +185,11 @@ func InitTilesFromPath(path string) (map[int]*Tile, error) {
 
 	return tileMap, nil
 }
+
+func (t *Tile) GetEffect() Effect {
+	return t.effect
+}
+
+func (t *Tile) GetID() int {
+	return t.id
+}
