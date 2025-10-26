@@ -3,6 +3,7 @@ package game
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"sync"
 
@@ -95,5 +96,21 @@ func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 		}
 	}
 
+	return nil
+}
+
+func (m *GameManager) HandlePlayerChoice(playerID string, choiceData map[string]interface{}) error {
+	player, err := m.game.GetPlayer(playerID)
+	if err != nil {
+		return fmt.Errorf("player %s not found", playerID)
+	}
+	currentTile := player.GetPosition()
+	effect := currentTile.GetEffect()
+
+	choice := choiceData["selection"]
+
+	if err := effect.Apply(player, m.game, choice); err != nil {
+		return fmt.Errorf("failed to apply choice :%w", err)
+	}
 	return nil
 }
