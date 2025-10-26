@@ -8,7 +8,7 @@ import (
 )
 
 type Effect interface {
-	Apply(player *Player, game *Game, choise interface{}) error
+	Apply(player *Player, game *Game, choice interface{}) error
 	RequiresUserInput() bool
 	GetOptions(tile *Tile) interface{}
 }
@@ -93,7 +93,7 @@ func (e ProfitEffect) RequiresUserInput() bool { return false }
 
 func (e ProfitEffect) GetOptions(tile *Tile) interface{} { return nil }
 
-func (e ProfitEffect) Apply(p *Player, g *Game, choise interface{}) error {
+func (e ProfitEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	err := p.Profit(e.Amount)
 	return err
 }
@@ -103,7 +103,7 @@ func (e LossEffect) RequiresUserInput() bool { return false }
 
 func (e LossEffect) GetOptions(tile *Tile) interface{} { return nil }
 
-func (e LossEffect) Apply(p *Player, g *Game, choise interface{}) error {
+func (e LossEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	err := p.Loss(e.Amount)
 	return err
 }
@@ -113,7 +113,7 @@ func (e QuizEffect) RequiresUserInput() bool { return true }
 
 func (e QuizEffect) GetOptions(tile *Tile) interface{} { return nil }
 
-func (e QuizEffect) Apply(p *Player, g *Game, choise interface{}) error {
+func (e QuizEffect) Apply(p *Player, g *Game, choice interface{}) error {
 
 	return nil
 }
@@ -129,10 +129,10 @@ func (e BranchEffect) GetOptions(tile *Tile) interface{} {
 	return options
 }
 
-func (e BranchEffect) Apply(p *Player, g *Game, choise interface{}) error {
+func (e BranchEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	var chosenTileID int
 	// float64 と int の両方の型に対応
-	switch v := choise.(type) {
+	switch v := choice.(type) {
 	case int:
 		chosenTileID = v
 	case float64:
@@ -170,7 +170,7 @@ func (e OverallEffect) RequiresUserInput() bool { return false }
 
 func (e OverallEffect) GetOptions(tile *Tile) interface{} { return nil }
 
-func (e OverallEffect) Apply(p *Player, g *Game, choise interface{}) error {
+func (e OverallEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	targetPlayers := g.GetAllPlayers()
 
 	otherPlayers := make([]*Player, 0, len(targetPlayers)-1)
@@ -201,7 +201,7 @@ func (e NeighborEffect) RequiresUserInput() bool { return false }
 
 func (e NeighborEffect) GetOptions(tile *Tile) interface{} { return nil }
 
-func (e NeighborEffect) Apply(p *Player, g *Game, choise interface{}) error {
+func (e NeighborEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	targetPlayers := g.GetNeighbors(p)
 	if e.ProfitAmount > 0 {
 		// 全体にお金をもらう
@@ -224,7 +224,7 @@ func (e RequireEffect) RequiresUserInput() bool { return false }
 
 func (e RequireEffect) GetOptions(tile *Tile) interface{} { return nil }
 
-func (e RequireEffect) Apply(p *Player, g *Game, choise interface{}) error {
+func (e RequireEffect) Apply(p *Player, g *Game, choice interface{}) error {
 
 	return nil
 }
@@ -234,7 +234,7 @@ func (e GambleEffect) RequiresUserInput() bool { return true }
 
 func (e GambleEffect) GetOptions(tile *Tile) interface{} { return nil }
 
-func (e GambleEffect) Apply(p *Player, g *Game, choise interface{}) error {
+func (e GambleEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	return nil
 }
 
@@ -243,7 +243,7 @@ func (e NoEffect) RequiresUserInput() bool { return false }
 
 func (e NoEffect) GetOptions(tile *Tile) interface{} { return nil }
 
-func (e NoEffect) Apply(p *Player, g *Game, choise interface{}) error {
+func (e NoEffect) Apply(p *Player, g *Game, choice interface{}) error {
 	return nil
 }
 

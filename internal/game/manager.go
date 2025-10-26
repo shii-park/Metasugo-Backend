@@ -110,7 +110,7 @@ func (m *GameManager) HandlePlayerChoice(playerID string, choiceData map[string]
 	choice := choiceData["selection"]
 
 	if err := effect.Apply(player, m.game, choice); err != nil {
-		return fmt.Errorf("failed to apply choice :%w", err)
+		return fmt.Errorf("failed to apply choice: %w", err)
 	}
 	return nil
 }
