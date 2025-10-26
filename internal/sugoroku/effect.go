@@ -130,13 +130,34 @@ func (e BranchEffect) GetOptions(tile *Tile) interface{} {
 }
 
 func (e BranchEffect) Apply(p *Player, g *Game, choise interface{}) error {
-	chosenTileID, ok := choise.(int)
-	if !ok {
-		return errors.New("Invalid choice for branch")
+	var chosenTileID int
+	// float64 と int の両方の型に対応
+	switch v := choise.(type) {
+	case int:
+		chosenTileID = v
+	case float64:
+		chosenTileID = int(v)
+	default:
+		return fmt.Errorf("invalid choice for branch: unexpected type %T", v)
 	}
 
+	// 選択肢が現在の分岐マスの次のタイルとして有効か検証する
+	isValidChoice := false
+	for _, nextTile := range p.GetPosition().nexts {
+		if nextTile.GetID() == chosenTileID {
+			isValidChoice = true
+			break
+		}
+	}
+
+	if !isValidChoice {
+		return fmt.Errorf("invalid choice for branch: tile %d is not a valid next tile", chosenTileID)
+	}
+
+	// プレイヤーの位置を選択されたタイルに更新
 	nextTile, exists := g.tileMap[chosenTileID]
 	if !exists {
+		// このエラーは上のバリデーションにより通常発生しないはず
 		return errors.New("chosen tile does not exist")
 	}
 
