@@ -124,7 +124,7 @@ func (e BranchEffect) RequiresUserInput() bool { return true }
 func (e BranchEffect) GetOptions(tile *Tile) interface{} {
 	options := make([]int, len(tile.nexts))
 	for i, nextTile := range tile.nexts {
-		options[i] = nextTile.Id
+		options[i] = nextTile.id
 	}
 	return options
 }

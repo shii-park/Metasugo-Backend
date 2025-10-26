@@ -114,7 +114,7 @@ func (g *Game) GetNeighbors(p *Player) []*Player { // 計算量がプレイヤ�
 	return targetPlayers
 }
 
-func (g *Game) GetPlayerID(playerID string) (*Player, error) {
+func (g *Game) GetPlayer(playerID string) (*Player, error) {
 	player, exist := g.players[playerID]
 	if !exist {
 		return nil, errors.New("The player does not exist")
