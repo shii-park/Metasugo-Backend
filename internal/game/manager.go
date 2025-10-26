@@ -35,8 +35,8 @@ func (gm *GameManager) RegisterPlayerClient(userID string, c *hub.Client) error 
 	return nil
 }
 
-func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
-	player, err := m.game.GetPlayer(playerID)
+func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
+	player, err := gm.game.GetPlayer(playerID)
 	if err != nil {
 		return errors.New("invalid player id")
 	}
@@ -53,22 +53,21 @@ func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	effect := currentTile.GetEffect()
 
 	if effect.RequiresUserInput() {
-		// ユーザー入力が必要な場合は、選択肢をクライアントに送信
-		options := effect.GetOptions(currentTile)
-		event := map[string]interface{}{
-			"type": "USER_CHOICE_REQUIRED",
-			"payload": map[string]interface{}{
-				"tile_id": currentTile.GetID(),
-				"options": options,
-			},
+		switch e := effect.(type) {
+		case sugoroku.BranchEffect:
+			return gm.handleBranchInput(player, currentTile, e)
+		case sugoroku.GambleEffect:
+			return gm.handleGambleInput(player, currentTile, e)
+		case sugoroku.QuizEffect:
+			return gm.handleQuizInput(player, currentTile, e)
+		default:
+			return fmt.Errorf("unhandled user input required for effect type %T", e)
 		}
-		// TODO: SendToPlayer を SendToClient に修正する必要があるか確認
-		return m.hub.SendToPlayer(playerID, event)
-	}
-
-	// 即時効果を適用
-	if err := effect.Apply(player, m.game, nil); err != nil {
-		return err
+	} else {
+		// 即時効果を適用
+		if err := effect.Apply(player, gm.game, nil); err != nil {
+			return err
+		}
 	}
 
 	// 移動と効果適用後の最終的な状態を取得
@@ -77,10 +76,10 @@ func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 
 	// 状態が変化していれば、全クライアントに通知
 	if initialPosition != finalPosition {
-		m.broadcastPlayerMoved(playerID, finalPosition)
+		gm.broadcastPlayerMoved(playerID, finalPosition)
 	}
 	if initialMoney != finalMoney {
-		m.broadcastMoneyChanged(playerID, finalMoney)
+		gm.broadcastMoneyChanged(playerID, finalMoney)
 	}
 
 	return nil
