@@ -1,26 +1,66 @@
 [
   {
     "id": 1,
-    "kind": "profit",
-    "detail": "スタート地点",
-    "effect": {},
-    "prev_id": 0,
-    "next_id": 2
+    "kind": "normal",
+    "detail": "スタート",
+    "effect": { "type": "no_effect" },
+    "prev_ids": [],
+    "next_ids": [2]
   },
   {
     "id": 2,
-    "kind": "loss",
-    "detail": "1マス戻る",
-    "effect": {},
-    "prev_id": 1,
-    "next_id": 3
+    "kind": "normal",
+    "detail": "通常マス",
+    "effect": { "type": "no_effect" },
+    "prev_ids": [1],
+    "next_ids": [3]
   },
   {
     "id": 3,
-    "kind": "quiz",
-    "detail": "クイズマス",
-    "effect": {},
-    "prev_id": 2,
-    "next_id": 0
+    "kind": "profit",
+    "detail": "利益マス",
+    "effect": { "type": "profit", "amount": 10 },
+    "prev_ids": [2],
+    "next_ids": [4]
+  },
+  {
+    "id": 4,
+    "kind": "normal",
+    "detail": "通常マス",
+    "effect": { "type": "no_effect" },
+    "prev_ids": [3],
+    "next_ids": [5]
+  },
+  {
+    "id": 5,
+    "kind": "branch",
+    "detail": "分岐マス",
+    "effect": { "type": "branch" },
+    "prev_ids": [4],
+    "next_ids": [6, 7]
+  },
+  {
+    "id": 6,
+    "kind": "normal",
+    "detail": "分岐先A",
+    "effect": { "type": "no_effect" },
+    "prev_ids": [5],
+    "next_ids": [8]
+  },
+  {
+    "id": 7,
+    "kind": "normal",
+    "detail": "分岐先B",
+    "effect": { "type": "no_effect" },
+    "prev_ids": [5],
+    "next_ids": [8]
+  },
+  {
+    "id": 8,
+    "kind": "normal",
+    "detail": "合流マス",
+    "effect": { "type": "no_effect" },
+    "prev_ids": [6, 7],
+    "next_ids": []
   }
 ]

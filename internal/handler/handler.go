@@ -50,7 +50,7 @@ func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc
 			return
 		}
 
-		client := hub.NewClient(h.hub, conn, userID)
+		client := h.hub.NewClient(conn, userID)
 
 		h.hub.Register(client)
 		gm.RegisterPlayerClient(userID, client)

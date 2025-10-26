@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
@@ -26,6 +28,16 @@ func NewHub() *Hub {
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[string]*Client),
+	}
+}
+
+// NewClient creates a new Client associated with this Hub.
+func (h *Hub) NewClient(conn *websocket.Conn, playerID string) *Client {
+	return &Client{
+		Hub:      h,
+		Conn:     conn,
+		Send:     make(chan []byte, 256),
+		PlayerID: playerID,
 	}
 }
 

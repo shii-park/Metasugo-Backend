@@ -1,76 +1,81 @@
 package hub
 
 import (
-	"net/http"
-	"net/http/httptest"
-	"strings"
+	"encoding/json"
 	"testing"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestHub(t *testing.T) {
+func TestHub_Registration(t *testing.T) {
 	hub := NewHub()
 	go hub.Run()
 
-	// Create a test server
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		upgrader := websocket.Upgrader{}
-		conn, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			t.Fatal(err)
+	client1 := NewClient(hub, nil, "player1")
+	client2 := NewClient(hub, nil, "player2")
+
+	// Register clients
+	hub.Register(client1)
+	hub.Register(client2)
+
+	time.Sleep(50 * time.Millisecond) // Allow time for processing
+
+	hub.mu.RLock()
+	assert.Len(t, hub.clients, 2, "Should have 2 registered clients")
+	assert.Contains(t, hub.clients, "player1")
+	assert.Contains(t, hub.clients, "player2")
+	hub.mu.RUnlock()
+
+	// Unregister a client
+	hub.Unregister(client1)
+
+	time.Sleep(50 * time.Millisecond) // Allow time for processing
+
+	hub.mu.RLock()
+	assert.Len(t, hub.clients, 1, "Should have 1 client remaining")
+	assert.NotContains(t, hub.clients, "player1")
+	hub.mu.RUnlock()
+}
+
+func TestHub_SendToPlayer(t *testing.T) {
+	hub := NewHub()
+	go hub.Run()
+
+	client1 := NewClient(hub, nil, "player1")
+	client2 := NewClient(hub, nil, "player2")
+
+	hub.Register(client1)
+	hub.Register(client2)
+	time.Sleep(50 * time.Millisecond)
+
+	t.Run("Send to existing player", func(t *testing.T) {
+		message := map[string]string{"data": "hello player 2"}
+		err := hub.SendToPlayer("player2", message)
+		assert.NoError(t, err)
+
+		// Check if the message was received by the correct client
+		select {
+		case msgBytes := <-client2.Send:
+			var receivedMsg map[string]string
+			json.Unmarshal(msgBytes, &receivedMsg)
+			assert.Equal(t, "hello player 2", receivedMsg["data"])
+		case <-time.After(100 * time.Millisecond):
+			t.Fatal("Timed out waiting for message")
 		}
-		// In a real application, you would create a client here.
-		// For this test, we are creating the client outside the server
-		// to have more control over it.
-		_ = NewClient(hub, conn, "test-user")
-	}))
-	defer server.Close()
 
-	// Convert the http:// server URL to ws://
-	wsURL := "ws" + strings.TrimPrefix(server.URL, "http")
-
-	// Connect to the server
-	conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
-	if err != nil {
-		t.Fatalf("Failed to connect to websocket: %v", err)
-	}
-	defer conn.Close()
-
-	client := NewClient(hub, conn, "test-user")
-
-	// Register the client
-	hub.register <- client
-
-	// Allow some time for registration to complete
-	time.Sleep(100 * time.Millisecond)
-
-	if len(hub.clients) != 1 {
-		t.Errorf("Expected 1 client, got %d", len(hub.clients))
-	}
-
-	// Broadcast a message
-	message := []byte("hello")
-	hub.broadcast <- message
-
-	// Check if the client received the message
-	select {
-	case msg := <-client.send:
-		if string(msg) != "hello" {
-			t.Errorf("Expected 'hello', got '%s'", string(msg))
+		// Check that the other client did not receive the message
+		select {
+		case <-client1.Send:
+			t.Fatal("Client 1 should not have received the message")
+		default:
+			// Correct, no message
 		}
-	case <-time.After(1 * time.Second):
-		t.Error("Timed out waiting for message")
-	}
+	})
 
-	// Unregister the client
-	hub.unregister <- client
-
-	// Allow some time for unregistration to complete
-	time.Sleep(100 * time.Millisecond)
-
-	if len(hub.clients) != 0 {
-		t.Errorf("Expected 0 clients, got %d", len(hub.clients))
-	}
+	t.Run("Send to non-existent player", func(t *testing.T) {
+		message := map[string]string{"data": "hello ghost"}
+		err := hub.SendToPlayer("player3", message)
+		assert.Error(t, err, "Should return an error when player is not found")
+	})
 }
