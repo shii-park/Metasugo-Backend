@@ -116,3 +116,7 @@ func (p *Player) GetID() string {
 func (p *Player) GetPosition() *Tile {
 	return p.position
 }
+
+func (p *Player) GetMoney() int {
+	return p.money
+}
