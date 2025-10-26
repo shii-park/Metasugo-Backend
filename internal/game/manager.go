@@ -35,67 +35,65 @@ func (gm *GameManager) RegisterPlayerClient(userID string, c *hub.Client) error 
 	return nil
 }
 
-func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
-	player, err := gm.game.GetPlayer(playerID)
+func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
+	player, err := m.game.GetPlayer(playerID)
 	if err != nil {
 		return errors.New("invalid player id")
 	}
 
-	// 移動前の状態を記録
+	// 1. 移動前の状態を記録
 	initialPosition := player.GetPosition().GetID()
 	initialMoney := player.GetMoney()
 
-	// プレイヤーを移動させる
+	// 2. プレイヤーを移動させる
 	player.Move(steps)
 
-	// マス効果を適用
+	// 3. マス効果を判定・適用
 	currentTile := player.GetPosition()
 	effect := currentTile.GetEffect()
 
 	if effect.RequiresUserInput() {
+		// 3a. ユーザー入力が必要な場合 (Applyはここでは呼ばない)
 		switch e := effect.(type) {
 		case sugoroku.BranchEffect:
-			return gm.handleBranchInput(player, currentTile, e)
-		case sugoroku.GambleEffect:
-			return gm.handleGambleInput(player, currentTile, e)
+			return m.handleBranchInput(player, currentTile, e)
 		case sugoroku.QuizEffect:
-			return gm.handleQuizInput(player, currentTile, e)
+			return m.handleQuizInput(player, currentTile, e)
+		case sugoroku.GambleEffect:
+			return m.handleGambleInput(player, currentTile, e)
 		default:
 			return fmt.Errorf("unhandled user input required for effect type %T", e)
 		}
 	} else {
-		// 即時効果を適用
-		if err := effect.Apply(player, gm.game, nil); err != nil {
+		// 3b. 即時効果の場合 (ここでApplyを呼ぶ)
+		if err := effect.Apply(player, m.game, nil); err != nil {
 			return err
 		}
 	}
 
-	// 移動と効果適用後の最終的な状態を取得
+	// 4. 最終的な状態の変化を検知して通知
 	finalPosition := player.GetPosition().GetID()
 	finalMoney := player.GetMoney()
 
-	// 状態が変化していれば、全クライアントに通知
 	if initialPosition != finalPosition {
-		gm.broadcastPlayerMoved(playerID, finalPosition)
+		m.broadcastPlayerMoved(playerID, finalPosition)
 	}
 	if initialMoney != finalMoney {
-		gm.broadcastMoneyChanged(playerID, finalMoney)
+		m.broadcastMoneyChanged(playerID, finalMoney)
 	}
 
 	return nil
 }
 
-func (m *GameManager) HandlePlayerChoice(playerID string, choiceData map[string]interface{}) error {
+func (m *GameManager) HandlePlayerChoice(playerID string, choiceData map[string]any) error {
 	player, err := m.game.GetPlayer(playerID)
 	if err != nil {
 		return fmt.Errorf("player %s not found", playerID)
 	}
 
-	// 適用前の状態を記録
 	initialPosition := player.GetPosition().GetID()
 	initialMoney := player.GetMoney()
 
-	// 選択を適用
 	currentTile := player.GetPosition()
 	effect := currentTile.GetEffect()
 	choice := choiceData["selection"]
@@ -103,11 +101,9 @@ func (m *GameManager) HandlePlayerChoice(playerID string, choiceData map[string]
 		return fmt.Errorf("failed to apply choice: %w", err)
 	}
 
-	// 適用後の最終的な状態を取得
 	finalPosition := player.GetPosition().GetID()
 	finalMoney := player.GetMoney()
 
-	// 状態が変化していれば、全クライアントに通知
 	if initialPosition != finalPosition {
 		m.broadcastPlayerMoved(playerID, finalPosition)
 	}

@@ -77,8 +77,23 @@ func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc
 				continue
 			}
 			switch req.Type {
-			case "getTile", "getTiles":
-				h.HandleGetTile(client, req.Payload)
+			case "ROLL_DICE":
+				steps, ok := req.Payload["steps"].(float64)
+				if !ok {
+					// TODO: エラーハンドリング
+					continue
+				}
+				if err := gm.MoveByDiceRoll(userID, int(steps)); err != nil {
+					log.Printf("Error during MoveByDiceRoll: %v", err)
+				}
+			case "SUBMIT_CHOICE":
+				if err := gm.HandlePlayerChoice(userID, req.Payload); err != nil {
+					log.Printf("Error during HandlePlayerChoice: %v", err)
+				}
+			case "SUBMIT_GAMBLE":
+				if err := gm.HandleGamble(userID, req.Payload); err != nil {
+					log.Printf("Error during HandleGamble: %v", err)
+				}
 			default:
 				_ = client.SendJSON(gin.H{ //TODO: sendErrorをつかうようにする
 					"type": "error", "code": "unknown_request", "message": "未対応のリクエストです",

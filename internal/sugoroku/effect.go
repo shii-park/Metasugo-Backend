@@ -212,6 +212,28 @@ func (e GambleEffect) RequiresUserInput() bool { return true }
 func (e GambleEffect) GetOptions(tile *Tile) any { return nil }
 
 func (e GambleEffect) Apply(p *Player, g *Game, choice any) error {
+	userInput, ok := choice.(map[string]interface{})
+	if !ok {
+		return errors.New("invalid input format for gamble")
+	}
+
+	bet, ok := userInput["bet"].(float64)
+	if !ok {
+		return errors.New("bet is missing or not a number")
+	}
+	if int(bet) <= 0 {
+		return errors.New("bet must be positive")
+	}
+	if p.GetMoney() < int(bet) {
+		return errors.New("insufficient money")
+	}
+
+	choiceStr, ok := userInput["choice"].(string)
+	if !ok || (choiceStr != "High" && choiceStr != "Low") {
+		return errors.New("choice must be 'High' or 'Low'")
+	}
+
+	// 検証のみ行い、エラーがなければnilを返す
 	return nil
 }
 
