@@ -73,8 +73,12 @@ func (h *Hub) Unregister(client *Client) {
 	h.unregister <- client
 }
 
+func (h *Hub) Broadcast(message []byte) {
+	h.broadcast <- message
+}
+
 // 特定のプレイヤーにJSONメッセージを送信する
-func (h *Hub) SendToClient(playerID string, message interface{}) error {
+func (h *Hub) SendToPlayer(playerID string, message interface{}) error {
 	rawMessage, err := json.Marshal(message)
 	if err != nil {
 		return fmt.Errorf("failed to marshal message: %w", err)
