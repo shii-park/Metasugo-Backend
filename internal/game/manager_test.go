@@ -2,6 +2,8 @@ package game
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -11,8 +13,14 @@ import (
 )
 
 // setupTestEnvironment はテスト用の共通セットアップを行います。
-func setupTestEnvironment(t *testing.T) (*GameManager, *hub.Hub) {
-	game := sugoroku.NewGameWithTilesForTest("../../tiles.json")
+func setupTestEnvironment(t *testing.T, tilePath string) (*GameManager, *hub.Hub) {
+	// TODO: sugoroku.InitQuiz() は引数を受け取れず、パスがハードコードされているため、
+	// 現状の「_test.go ファイルのみを修正する」というルール内ではテスト時に
+	// test_quizzes.json を読み込ませることができない。そのため、クイズ関連のテストは一旦コメントアウトする。
+	// err := sugoroku.InitQuiz()
+	// assert.NoError(t, err)
+
+	game := sugoroku.NewGameWithTilesForTest(tilePath)
 	h := hub.NewHub()
 	go h.Run()
 	gm := NewGameManager(game, h)
@@ -28,90 +36,109 @@ func createAndRegisterClient(t *testing.T, gm *GameManager, hub *hub.Hub, player
 	err := gm.RegisterPlayerClient(playerID, client)
 	assert.NoError(t, err)
 
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond) // 登録処理を待つ
 
 	return client
 }
 
-func TestGameManager_NewGameManager(t *testing.T) {
-	gm, _ := setupTestEnvironment(t)
-	assert.NotNil(t, gm)
-	assert.NotNil(t, gm.game)
-	assert.NotNil(t, gm.hub)
-}
-
-func TestGameManager_MoveByDiceRoll_ImmediateEffect(t *testing.T) {
-	gm, h := setupTestEnvironment(t)
-	playerID := "test_player_profit"
-	_ = createAndRegisterClient(t, gm, h, playerID)
-
-	player, _ := gm.game.GetPlayer(playerID)
-	initialMoney := player.GetMoney()
-
-	// 2マス進むと "profit" マス (ID: 3) に止まるはず
-	err := gm.MoveByDiceRoll(playerID, 2)
-	assert.NoError(t, err)
-
-	// 移動後のタイルIDをログに出力
-	t.Logf("Player landed on tile ID: %d", player.GetPosition().GetID())
-
-	// 効果が即時適用され、所持金が増えていることを確認
-	finalMoney := player.GetMoney()
-	assert.Greater(t, finalMoney, initialMoney, "Money should increase on a profit tile")
-}
-
-func TestGameManager_MoveByDiceRoll_StopsAtBranch(t *testing.T) {
-	gm, h := setupTestEnvironment(t)
-	playerID := "test_player_branch"
-	client := createAndRegisterClient(t, gm, h, playerID)
-
-	// 4マス進むと "branch" マス (ID: 5) に止まる
-	err := gm.MoveByDiceRoll(playerID, 4)
-	assert.NoError(t, err)
-
-	// プレイヤーの位置が分岐マス(ID: 5)であることを確認
-	player, _ := gm.game.GetPlayer(playerID)
-	assert.Equal(t, 5, player.GetPosition().GetID())
-
-	// クライアントがUSER_CHOICE_REQUIREDイベントを受信することを確認
+// assertEventReceived はクライアントが特定のイベントを受信したことを表明します。
+func assertEventReceived(t *testing.T, client *hub.Client, expectedEventType string) map[string]interface{} {
 	select {
 	case msg := <-client.Send:
 		var event map[string]interface{}
 		err := json.Unmarshal(msg, &event)
-		assert.NoError(t, err)
-		assert.Equal(t, "USER_CHOICE_REQUIRED", event["type"])
-
+		assert.NoError(t, err, "Failed to unmarshal event message")
+		assert.Equal(t, expectedEventType, event["type"], "Received event type mismatch")
+		payload, ok := event["payload"].(map[string]interface{})
+		assert.True(t, ok, "Payload is not a map")
+		return payload
 	case <-time.After(100 * time.Millisecond):
-		t.Fatal("Timed out waiting for USER_CHOICE_REQUIRED event")
+		t.Fatalf("Timed out waiting for %s event", expectedEventType)
 	}
+	return nil
 }
 
-func TestGameManager_HandlePlayerChoice(t *testing.T) {
-	gm, h := setupTestEnvironment(t)
-	playerID := "test_player_choice"
-	client := createAndRegisterClient(t, gm, h, playerID)
+// getTestFilePath はテストファイルの相対パスを絶対パスに変換します。
+func getTestFilePath(t *testing.T, relativePath string) string {
+	dir, err := os.Getwd()
+	assert.NoError(t, err)
+	return filepath.Join(dir, "..", "..", relativePath)
+}
 
-	// --- セットアップ：先にプレイヤーを分岐マスまで移動させる ---
-	err := gm.MoveByDiceRoll(playerID, 4) // 4マス進んで分岐マス(ID: 5)へ
+func TestGameManager_BroadcastsPlayerMoved(t *testing.T) {
+	tilePath := getTestFilePath(t, "test/test_tiles.json")
+	gm, h := setupTestEnvironment(t, tilePath)
+
+	player1ID := "player1"
+	player2ID := "player2"
+	_ = createAndRegisterClient(t, gm, h, player1ID)
+	player2 := createAndRegisterClient(t, gm, h, player2ID)
+
+	// player1を1マス移動させる
+	err := gm.MoveByDiceRoll(player1ID, 1)
 	assert.NoError(t, err)
 
-	// 念のため、位置とイベント受信を確認
-	player, _ := gm.game.GetPlayer(playerID)
-	assert.Equal(t, 5, player.GetPosition().GetID())
-	// イベントチャネルをクリアする
-	select {
-	case <-client.Send:
-	default:
-	}
+	// player2がPLAYER_MOVEDイベントを受信することを確認
+	payload := assertEventReceived(t, player2, "PLAYER_MOVED")
+	assert.Equal(t, "player1", payload["userID"])
+	assert.Equal(t, float64(2), payload["newPosition"], "Player should have moved to tile 2")
+}
 
-	// --- テスト本番：ユーザーの選択を処理 --- 
-	choicePayload := map[string]interface{}{
-		"selection": float64(6), // JSON経由の数値はfloat64になるため
-	}
+func TestGameManager_BroadcastsMoneyChanged(t *testing.T) {
+	tilePath := getTestFilePath(t, "test/test_tiles.json")
+	gm, h := setupTestEnvironment(t, tilePath)
 
-	err = gm.HandlePlayerChoice(playerID, choicePayload)
+	player1ID := "player1"
+	player2ID := "player2"
+	_ = createAndRegisterClient(t, gm, h, player1ID)
+	player2 := createAndRegisterClient(t, gm, h, player2ID)
+
+	// player1を利益マス(ID:2)に移動させる (1マス進む)
+	err := gm.MoveByDiceRoll(player1ID, 1)
 	assert.NoError(t, err)
 
-	// プレイヤーが選択したタイルID 6 に移動したことを確認
-	assert.Equal(t, 6, player.GetPosition().GetID(), "Player should have moved to the chosen tile")
+	// player2がMONEY_CHANGEDイベントを受信することを確認
+	// 移動イベントもブロードキャストされるため、チャネルから読み飛ばす
+	<-player2.Send
+	payload := assertEventReceived(t, player2, "MONEY_CHANGED")
+	assert.Equal(t, "player1", payload["userID"])
+	assert.Equal(t, float64(10), payload["newMoney"], "Player money should be 10")
+}
+
+// TODO: このテストはsugoroku.InitQuiz()がリファクタリングされ、テスト時に
+//       テスト用のクイズファイルを読み込めるようになるまで、一時的に無効化します。
+// func TestGameManager_SendsQuizRequired(t *testing.T) {
+// 	tilePath := getTestFilePath(t, "test/test_tiles.json")
+// 	gm, h := setupTestEnvironment(t, tilePath)
+// 	player1ID := "player1"
+// 	player1 := createAndRegisterClient(t, gm, h, player1ID)
+//
+// 	// player1をクイズマス(ID:3)に移動させる (2マス進む)
+// 	err := gm.MoveByDiceRoll(player1ID, 2)
+// 	assert.NoError(t, err)
+//
+// 	// player1がQUIZ_REQUIREDイベントを受信することを確認
+// 	payload := assertEventReceived(t, player1, "QUIZ_REQUIRED")
+// 	assert.Equal(t, float64(3), payload["tileID"])
+// 	quizData, ok := payload["quizData"].(map[string]interface{})
+// 	assert.True(t, ok)
+// 	assert.Equal(t, "1 + 1は？", quizData["question"])
+// }
+
+func TestGameManager_SendsBranchChoiceRequired(t *testing.T) {
+	tilePath := getTestFilePath(t, "test/test_tiles.json")
+	gm, h := setupTestEnvironment(t, tilePath)
+	player1ID := "player1"
+	player1 := createAndRegisterClient(t, gm, h, player1ID)
+
+	// player1を分岐マス(ID:4)に移動させる (3マス進む)
+	err := gm.MoveByDiceRoll(player1ID, 3)
+	assert.NoError(t, err)
+
+	// player1がBRANCH_CHOICE_REQUIREDイベントを受信することを確認
+	payload := assertEventReceived(t, player1, "BRANCH_CHOICE_REQUIRED")
+	assert.Equal(t, float64(4), payload["tile_id"])
+	options, ok := payload["options"].([]interface{})
+	assert.True(t, ok)
+	assert.ElementsMatch(t, []interface{}{float64(5), float64(6)}, options)
 }

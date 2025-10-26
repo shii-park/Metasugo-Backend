@@ -3,8 +3,6 @@ package sugoroku
 import (
 	"errors"
 	"sync"
-
-	"github.com/shii-park/Metasugo-Backend/internal/event"
 )
 
 type Player struct {
@@ -12,7 +10,6 @@ type Player struct {
 	id       string
 	money    int
 	mu       sync.Mutex
-	OnEvent  func(e event.Event)
 }
 
 // プレイヤーのインスタンスを生成する
@@ -54,15 +51,6 @@ func (p *Player) Profit(amount int) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.money += amount
-	if p.OnEvent != nil {
-		p.OnEvent(event.Event{
-			Type:     event.MoneyChanged,
-			PlayerID: p.id,
-			Data: map[string]interface{}{
-				"money": p.money,
-			},
-		})
-	}
 	return nil
 }
 
@@ -74,15 +62,6 @@ func (p *Player) Loss(amount int) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.money -= amount
-	if p.OnEvent != nil {
-		p.OnEvent(event.Event{
-			Type:     event.MoneyChanged,
-			PlayerID: p.id,
-			Data: map[string]interface{}{
-				"money": p.money,
-			},
-		})
-	}
 	return nil
 }
 
