@@ -42,38 +42,38 @@ func (gm *GameManager) broadcastPlayerMoved(userID string, newPosition int) {
 
 	gm.hub.Broadcast(message)
 }
-
-func (gm *GameManager) handleBranchInput(p *sugoroku.Player, t *sugoroku.Tile, effect sugoroku.Effect) error {
-	options := effect.GetOptions(t)
+func (m *GameManager) handleBranchInput(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.BranchEffect) error {
+	options := effect.GetOptions(tile)
 	event := map[string]interface{}{
 		"type": "BRANCH_CHOICE_REQUIRED",
 		"payload": map[string]interface{}{
-			"tile_id": t.GetID(),
+			"tileID":  tile.GetID(),
 			"options": options,
 		},
 	}
-	return gm.hub.SendToPlayer(p.GetID(), event)
+	return m.hub.SendToPlayer(player.GetID(), event)
 }
 
-func (gm *GameManager) handleGambleInput(p *sugoroku.Player, t *sugoroku.Tile, effect sugoroku.Effect) error {
-	options := effect.GetOptions(t)
+func (m *GameManager) handleQuizInput(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.QuizEffect) error {
+	quizData := effect.GetOptions(tile)
 	event := map[string]interface{}{
-		"type": "GAMBLE_CHOICE_REQUIRED",
+		"type": "QUIZ_REQUIRED",
 		"payload": map[string]interface{}{
-			"tile_id": t.GetID(),
-			"options": options,
+			"tileID":   tile.GetID(),
+			"quizData": quizData,
 		},
 	}
-	return gm.hub.SendToPlayer(p.GetID(), event)
+	return m.hub.SendToPlayer(player.GetID(), event)
 }
-func (gm *GameManager) handleQuizInput(p *sugoroku.Player, t *sugoroku.Tile, effect sugoroku.Effect) error {
-	options := effect.GetOptions(t)
+
+func (m *GameManager) handleGambleInput(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.GambleEffect) error {
+	baseValue := 3
 	event := map[string]interface{}{
-		"type": "QUIZ_CHOICE_REQUIRED",
+		"type": "GAMBLE_REQUIRED",
 		"payload": map[string]interface{}{
-			"tile_id": t.GetID(),
-			"options": options,
+			"tileID":         tile.GetID(),
+			"referenceValue": baseValue,
 		},
 	}
-	return gm.hub.SendToPlayer(p.GetID(), event)
+	return m.hub.SendToPlayer(player.GetID(), event)
 }
