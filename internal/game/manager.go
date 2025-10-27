@@ -56,11 +56,11 @@ func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 		// 3a. ユーザー入力が必要な場合 (Applyはここでは呼ばない)
 		switch e := effect.(type) {
 		case sugoroku.BranchEffect:
-			return m.handleBranchInput(player, currentTile, e)
+			return m.sendBranchSelection(player, currentTile, e)
 		case sugoroku.QuizEffect:
-			return m.handleQuizInput(player, currentTile, e)
+			return m.sendQuizInfo(player, currentTile, e)
 		case sugoroku.GambleEffect:
-			return m.handleGambleInput(player, currentTile, e)
+			return m.sendGambleRequire(player, currentTile, e)
 		default:
 			return fmt.Errorf("unhandled user input required for effect type %T", e)
 		}
@@ -72,35 +72,6 @@ func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	}
 
 	// 4. 最終的な状態の変化を検知して通知
-	finalPosition := player.GetPosition().GetID()
-	finalMoney := player.GetMoney()
-
-	if initialPosition != finalPosition {
-		m.broadcastPlayerMoved(playerID, finalPosition)
-	}
-	if initialMoney != finalMoney {
-		m.broadcastMoneyChanged(playerID, finalMoney)
-	}
-
-	return nil
-}
-
-func (m *GameManager) HandlePlayerChoice(playerID string, choiceData map[string]any) error {
-	player, err := m.game.GetPlayer(playerID)
-	if err != nil {
-		return fmt.Errorf("player %s not found", playerID)
-	}
-
-	initialPosition := player.GetPosition().GetID()
-	initialMoney := player.GetMoney()
-
-	currentTile := player.GetPosition()
-	effect := currentTile.GetEffect()
-	choice := choiceData["selection"]
-	if err := effect.Apply(player, m.game, choice); err != nil {
-		return fmt.Errorf("failed to apply choice: %w", err)
-	}
-
 	finalPosition := player.GetPosition().GetID()
 	finalMoney := player.GetMoney()
 
