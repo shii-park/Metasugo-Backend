@@ -93,12 +93,11 @@ func (gm *GameManager) sendGambleResult(playerID string, payload map[string]inte
 }
 
 func (gm *GameManager) sendDiceRollResult(playerID string, diceResult int) error {
-	baseValue := 3
 	event := map[string]interface{}{
 		"type": "DICE_RESULT",
 		"payload": map[string]interface{}{
 			"userID":     playerID,
-			"diceResult": baseValue,
+			"diceResult": diceResult,
 		},
 	}
 	return gm.hub.SendToPlayer(playerID, event)
