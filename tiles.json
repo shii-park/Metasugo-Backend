@@ -61,6 +61,14 @@
     "detail": "合流マス",
     "effect": { "type": "no_effect" },
     "prev_ids": [6, 7],
+    "next_ids": [9]
+  },
+  {
+    "id": 9,
+    "kind": "quiz",
+    "detail": "クイズマス",
+    "effect": { "type": "quiz", "quiz_id": 1, "amount": 10 },
+    "prev_ids": [8],
     "next_ids": []
   }
 ]

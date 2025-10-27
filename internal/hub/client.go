@@ -3,7 +3,6 @@ package hub
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -13,6 +12,7 @@ type Client struct {
 	Hub      *Hub
 	Conn     *websocket.Conn
 	Send     chan []byte
+	Receive  chan []byte
 	PlayerID string
 }
 
@@ -21,6 +21,7 @@ func NewClient(hub *Hub, conn *websocket.Conn, playerID string) *Client {
 		Hub:      hub,
 		Conn:     conn,
 		Send:     make(chan []byte, 256),
+		Receive:  make(chan []byte, 256),
 		PlayerID: playerID,
 	}
 }
@@ -34,6 +35,7 @@ const (
 func (c *Client) ReadPump() {
 	defer func() {
 		c.Hub.unregister <- c
+		close(c.Receive)
 		c.Conn.Close()
 	}()
 	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -42,13 +44,13 @@ func (c *Client) ReadPump() {
 		c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 		return nil
 	})
-	// TODO:よみとった　msgの処理を書く
+
 	for {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
 			break
 		}
-		fmt.Printf("Received message: %s", message)
+		c.Receive <- message
 	}
 }
 

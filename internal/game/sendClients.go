@@ -42,7 +42,7 @@ func (gm *GameManager) broadcastPlayerMoved(userID string, newPosition int) {
 
 	gm.hub.Broadcast(message)
 }
-func (m *GameManager) handleBranchInput(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.BranchEffect) error {
+func (m *GameManager) sendBranchSelection(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.BranchEffect) error {
 	options := effect.GetOptions(tile)
 	event := map[string]interface{}{
 		"type": "BRANCH_CHOICE_REQUIRED",
@@ -54,7 +54,7 @@ func (m *GameManager) handleBranchInput(player *sugoroku.Player, tile *sugoroku.
 	return m.hub.SendToPlayer(player.GetID(), event)
 }
 
-func (m *GameManager) handleQuizInput(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.QuizEffect) error {
+func (m *GameManager) sendQuizInfo(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.QuizEffect) error {
 	quizData := effect.GetOptions(tile)
 	event := map[string]interface{}{
 		"type": "QUIZ_REQUIRED",
@@ -66,7 +66,7 @@ func (m *GameManager) handleQuizInput(player *sugoroku.Player, tile *sugoroku.Ti
 	return m.hub.SendToPlayer(player.GetID(), event)
 }
 
-func (m *GameManager) handleGambleInput(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.GambleEffect) error {
+func (m *GameManager) sendGambleRequire(player *sugoroku.Player, tile *sugoroku.Tile) error {
 	baseValue := 3
 	event := map[string]interface{}{
 		"type": "GAMBLE_REQUIRED",
@@ -76,4 +76,18 @@ func (m *GameManager) handleGambleInput(player *sugoroku.Player, tile *sugoroku.
 		},
 	}
 	return m.hub.SendToPlayer(player.GetID(), event)
+}
+
+func (gm *GameManager) sendGambleResult(playerID string, payload map[string]interface{}) {
+	message, err := json.Marshal(map[string]interface{}{
+		"type":    "GAMBLE_RESULT",
+		"payload": payload,
+	})
+	if err != nil {
+		log.Printf("error: could not marshal gamble result event: %v", err)
+		return
+	}
+	if err := gm.hub.SendToPlayer(playerID, message); err != nil {
+		log.Printf("error: failed to send gamble result to player %s: %v", playerID, err)
+	}
 }

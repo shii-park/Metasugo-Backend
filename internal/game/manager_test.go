@@ -14,11 +14,15 @@ import (
 
 // setupTestEnvironment はテスト用の共通セットアップを行います。
 func setupTestEnvironment(t *testing.T, tilePath string) (*GameManager, *hub.Hub) {
-	// TODO: sugoroku.InitQuiz() は引数を受け取れず、パスがハードコードされているため、
-	// 現状の「_test.go ファイルのみを修正する」というルール内ではテスト時に
-	// test_quizzes.json を読み込ませることができない。そのため、クイズ関連のテストは一旦コメントアウトする。
-	// err := sugoroku.InitQuiz()
-	// assert.NoError(t, err)
+	// クイズデータをテスト用に初期化
+	originalQuizJSONPath := sugoroku.QuizJSONPath
+	sugoroku.QuizJSONPath = getTestFilePath(t, "test/test_quizzes.json")
+	err := sugoroku.InitQuiz()
+	assert.NoError(t, err)
+	// この関数の終わりに元のパスに戻す
+	t.Cleanup(func() {
+		sugoroku.QuizJSONPath = originalQuizJSONPath
+	})
 
 	game := sugoroku.NewGameWithTilesForTest(tilePath)
 	h := hub.NewHub()
@@ -45,6 +49,7 @@ func createAndRegisterClient(t *testing.T, gm *GameManager, hub *hub.Hub, player
 func assertEventReceived(t *testing.T, client *hub.Client, expectedEventType string) map[string]interface{} {
 	select {
 	case msg := <-client.Send:
+		t.Logf("Received JSON: %s", msg)
 		var event map[string]interface{}
 		err := json.Unmarshal(msg, &event)
 		assert.NoError(t, err, "Failed to unmarshal event message")
@@ -105,25 +110,26 @@ func TestGameManager_BroadcastsMoneyChanged(t *testing.T) {
 	assert.Equal(t, float64(10), payload["newMoney"], "Player money should be 10")
 }
 
-// TODO: このテストはsugoroku.InitQuiz()がリファクタリングされ、テスト時に
-//       テスト用のクイズファイルを読み込めるようになるまで、一時的に無効化します。
-// func TestGameManager_SendsQuizRequired(t *testing.T) {
-// 	tilePath := getTestFilePath(t, "test/test_tiles.json")
-// 	gm, h := setupTestEnvironment(t, tilePath)
-// 	player1ID := "player1"
-// 	player1 := createAndRegisterClient(t, gm, h, player1ID)
-//
-// 	// player1をクイズマス(ID:3)に移動させる (2マス進む)
-// 	err := gm.MoveByDiceRoll(player1ID, 2)
-// 	assert.NoError(t, err)
-//
-// 	// player1がQUIZ_REQUIREDイベントを受信することを確認
-// 	payload := assertEventReceived(t, player1, "QUIZ_REQUIRED")
-// 	assert.Equal(t, float64(3), payload["tileID"])
-// 	quizData, ok := payload["quizData"].(map[string]interface{})
-// 	assert.True(t, ok)
-// 	assert.Equal(t, "1 + 1は？", quizData["question"])
-// }
+func TestGameManager_SendsQuizRequired(t *testing.T) {
+	tilePath := getTestFilePath(t, "test/test_tiles.json")
+	gm, h := setupTestEnvironment(t, tilePath)
+	player1ID := "player1"
+	player1 := createAndRegisterClient(t, gm, h, player1ID)
+
+	// player1をクイズマス(ID:3)に移動させる (2マス進む)
+	err := gm.MoveByDiceRoll(player1ID, 2)
+	assert.NoError(t, err)
+
+	// player1がQUIZ_REQUIREDイベントを受信することを確認
+	payload := assertEventReceived(t, player1, "QUIZ_REQUIRED")
+	assert.Equal(t, float64(3), payload["tileID"])
+	quizData, ok := payload["quizData"].(map[string]interface{})
+	assert.True(t, ok)
+	assert.Equal(t, "1 + 1は？", quizData["question"])
+	options, ok := quizData["options"].([]interface{})
+	assert.True(t, ok)
+	assert.ElementsMatch(t, []interface{}{"1", "2", "3", "4"}, options)
+}
 
 func TestGameManager_SendsBranchChoiceRequired(t *testing.T) {
 	tilePath := getTestFilePath(t, "test/test_tiles.json")
@@ -137,7 +143,7 @@ func TestGameManager_SendsBranchChoiceRequired(t *testing.T) {
 
 	// player1がBRANCH_CHOICE_REQUIREDイベントを受信することを確認
 	payload := assertEventReceived(t, player1, "BRANCH_CHOICE_REQUIRED")
-	assert.Equal(t, float64(4), payload["tile_id"])
+	assert.Equal(t, float64(4), payload["tileID"])
 	options, ok := payload["options"].([]interface{})
 	assert.True(t, ok)
 	assert.ElementsMatch(t, []interface{}{float64(5), float64(6)}, options)
