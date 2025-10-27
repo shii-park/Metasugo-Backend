@@ -1,11 +1,14 @@
 package game
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
 )
 
+// SUBMIT_BRANCHリクエスト時に発火する関数。
+// 選んだタイルIDの方向へ移動させる。
 func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interface{}) error {
 	player, err := m.game.GetPlayer(playerID)
 	if err != nil {
@@ -39,6 +42,9 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 	return nil
 }
 
+// SUBMIT_GAMBLEリクエスト時に発火する関数。
+// ペイロードからbetとHigh or Lowを読み込みギャンブルを行う。
+// Gambleの結果をプレイヤーに返す。
 func (m *GameManager) HandleGamble(playerID string, payload map[string]interface{}) error {
 	player, err := m.game.GetPlayer(playerID)
 	if err != nil {
@@ -48,7 +54,7 @@ func (m *GameManager) HandleGamble(playerID string, payload map[string]interface
 	effect := player.GetPosition().GetEffect()
 
 	if err := effect.Apply(player, m.game, payload); err != nil {
-		return fmt.Errorf("invalid gamble input: %w", err)
+		return fmt.Errorf("invalid handgamble input: %w", err)
 	}
 
 	baseValue := 3
@@ -84,5 +90,34 @@ func (m *GameManager) HandleGamble(playerID string, payload map[string]interface
 		m.broadcastMoneyChanged(playerID, finalMoney)
 	}
 
+	return nil
+}
+
+// SUBMIT_QUIZリクエスト時に発火する関数。
+// ペイロードからクイズIDと答えを読み取る。
+func (m *GameManager) HandleQuiz(playerID string, payload map[string]interface{}) error {
+	player, err := m.game.GetPlayer(playerID)
+	if err != nil {
+		return fmt.Errorf("player %s not found", playerID)
+	}
+	initialMoney := player.GetMoney()
+
+	selection, ok := payload["selection"]
+	if !ok {
+		return errors.New("selection not found in payload")
+	}
+
+	currentTile := player.GetPosition()
+	effect := currentTile.GetEffect()
+
+	if err := effect.Apply(player, m.game, selection); err != nil {
+		return fmt.Errorf("failed to apply quiz choice: %w", err)
+	}
+
+	finalMoney := player.GetMoney()
+
+	if initialMoney != finalMoney {
+		m.broadcastMoneyChanged(playerID, finalMoney)
+	}
 	return nil
 }

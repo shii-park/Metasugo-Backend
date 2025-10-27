@@ -94,6 +94,10 @@ func (h *WebSocketHandler) proccessMessage(gm *game.GameManager, client *hub.Cli
 			if err := gm.HandleGamble(userID, req.Payload); err != nil {
 				log.Printf("Error during handleGamble: %v", err)
 			}
+		case "SUBMIT_QUIZ":
+			if err := gm.HandleGamble(userID, req.Payload); err != nil {
+				log.Printf("Error during handleQuiz: %v", err)
+			}
 		default:
 			_ = client.SendJSON(gin.H{ //TODO: sendErrorをつかうようにする
 				"type": "error", "code": "unknown_request", "message": "未対応のリクエストです",
