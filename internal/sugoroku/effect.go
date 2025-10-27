@@ -13,7 +13,7 @@ type Effect interface {
 	GetOptions(tile *Tile) any
 }
 
-const QuizJSONPath = "./quizzes.json"
+var QuizJSONPath = "./quizzes.json"
 
 // グローバル変数にキャッシュしておく
 var quizzes []Quiz
@@ -102,16 +102,17 @@ func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
 	switch v := choice.(type) {
 	case int:
 		selectedOptionIndex = v
-	case float32:
+	case float64:
 		selectedOptionIndex = int(v)
 	default:
 		return fmt.Errorf("invalid choice for quiz: unexpected type %T", v)
 	}
 
 	var targetQuiz *Quiz
-	for _, quiz := range quizzes {
-		if quiz.ID == e.QuizID {
-			targetQuiz = &quiz
+	for i := range quizzes {
+		if quizzes[i].ID == e.QuizID {
+			targetQuiz = &quizzes[i]
+			break
 		}
 	}
 
@@ -122,6 +123,7 @@ func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
 	if selectedOptionIndex == targetQuiz.AnswerIndex {
 		p.Profit(e.Amount)
 	}
+
 	return nil
 }
 
