@@ -88,10 +88,40 @@ func (e LossEffect) Apply(p *Player, g *Game, choice any) error {
 // クイズ効果
 func (e QuizEffect) RequiresUserInput() bool { return true }
 
-func (e QuizEffect) GetOptions(tile *Tile) any { return nil }
+func (e QuizEffect) GetOptions(tile *Tile) any {
+	for _, quiz := range quizzes {
+		if quiz.ID == e.QuizID {
+			return quiz.Options
+		}
+	}
+	return nil
+}
 
 func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
+	var selectedOptionIndex int
+	switch v := choice.(type) {
+	case int:
+		selectedOptionIndex = v
+	case float32:
+		selectedOptionIndex = int(v)
+	default:
+		return fmt.Errorf("invalid choice for quiz: unexpected type %T", v)
+	}
 
+	var targetQuiz *Quiz
+	for _, quiz := range quizzes {
+		if quiz.ID == e.QuizID {
+			targetQuiz = &quiz
+		}
+	}
+
+	if targetQuiz == nil {
+		return fmt.Errorf("quiz with ID %d not found", e.QuizID)
+	}
+
+	if selectedOptionIndex == targetQuiz.AnswerIndex {
+		p.Profit(e.Amount)
+	}
 	return nil
 }
 
