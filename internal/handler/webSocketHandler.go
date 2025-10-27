@@ -10,7 +10,6 @@ import (
 	"github.com/shii-park/Metasugo-Backend/internal/game"
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
 	"github.com/shii-park/Metasugo-Backend/internal/service"
-	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
 )
 
 //ハンドラを分割予定
@@ -83,7 +82,7 @@ func (h *WebSocketHandler) processMessage(gm *game.GameManager, client *hub.Clie
 		}
 		switch req.Type {
 		case "ROLL_DICE":
-			if err := gm.MoveByDiceRoll(userID, sugoroku.RollDice()); err != nil {
+			if err := gm.HandleMove(userID); err != nil {
 				log.Printf("Error during handleRollDice: %v", err)
 			}
 		case "SUBMIT_CHOICE":
