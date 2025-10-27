@@ -59,7 +59,7 @@ func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc
 		go client.WritePump()
 		go client.ReadPump()
 
-		go h.proccessMessage(gm, client, userID)
+		go h.processMessage(gm, client, userID)
 
 	}
 }
@@ -73,7 +73,7 @@ func (h *WebSocketHandler) HandleGetTile(client *hub.Client, request map[string]
 	_ = client.SendJSON(gin.H{"type": "tile", "data": tile})
 }
 
-func (h *WebSocketHandler) proccessMessage(gm *game.GameManager, client *hub.Client, userID string) {
+func (h *WebSocketHandler) processMessage(gm *game.GameManager, client *hub.Client, userID string) {
 	for message := range client.Receive {
 		var req wsRequest
 		if err := json.Unmarshal(message, &req); err != nil {

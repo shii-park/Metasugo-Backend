@@ -54,7 +54,7 @@ func (m *GameManager) HandleGamble(playerID string, payload map[string]interface
 	effect := player.GetPosition().GetEffect()
 
 	if err := effect.Apply(player, m.game, payload); err != nil {
-		return fmt.Errorf("invalid handgamble input: %w", err)
+		return fmt.Errorf("failed to apply gamble choice: %w", err)
 	}
 
 	baseValue := 3
