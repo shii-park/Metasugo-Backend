@@ -54,10 +54,10 @@ func TestQuizEffect(t *testing.T) {
 	assert.True(t, ok)
 
 	// Test GetOptions
-	options, ok := effect.GetOptions(quizTile).([]string)
+	quiz, ok := effect.GetOptions(quizTile).(Quiz)
 	assert.True(t, ok)
 	expectedOptions := []string{"1", "2", "3", "4"}
-	assert.Equal(t, expectedOptions, options)
+	assert.Equal(t, expectedOptions, quiz.Options)
 
 	// Test Apply with correct answer
 	initialMoney := player.GetMoney()
