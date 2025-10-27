@@ -60,7 +60,7 @@ func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 		case sugoroku.QuizEffect:
 			return m.sendQuizInfo(player, currentTile, e)
 		case sugoroku.GambleEffect:
-			return m.sendGambleRequire(player, currentTile, e)
+			return m.sendGambleRequire(player, currentTile)
 		default:
 			return fmt.Errorf("unhandled user input required for effect type %T", e)
 		}

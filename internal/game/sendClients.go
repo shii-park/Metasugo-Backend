@@ -66,7 +66,7 @@ func (m *GameManager) sendQuizInfo(player *sugoroku.Player, tile *sugoroku.Tile,
 	return m.hub.SendToPlayer(player.GetID(), event)
 }
 
-func (m *GameManager) sendGambleRequire(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.GambleEffect) error {
+func (m *GameManager) sendGambleRequire(player *sugoroku.Player, tile *sugoroku.Tile) error {
 	baseValue := 3
 	event := map[string]interface{}{
 		"type": "GAMBLE_REQUIRED",
