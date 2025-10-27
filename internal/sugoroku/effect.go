@@ -122,6 +122,8 @@ func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
 
 	if selectedOptionIndex == targetQuiz.AnswerIndex {
 		p.Profit(e.Amount)
+	} else {
+		p.Loss(e.Amount)
 	}
 
 	return nil
