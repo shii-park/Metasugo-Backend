@@ -91,7 +91,7 @@ func (e QuizEffect) RequiresUserInput() bool { return true }
 func (e QuizEffect) GetOptions(tile *Tile) any {
 	for _, quiz := range quizzes {
 		if quiz.ID == e.QuizID {
-			return quiz.Options
+			return quiz
 		}
 	}
 	return nil
