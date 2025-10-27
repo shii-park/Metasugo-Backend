@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
@@ -42,7 +43,7 @@ func (gm *GameManager) broadcastPlayerMoved(userID string, newPosition int) {
 
 	gm.hub.Broadcast(message)
 }
-func (m *GameManager) sendBranchSelection(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.BranchEffect) error {
+func (gm *GameManager) sendBranchSelection(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.BranchEffect) error {
 	options := effect.GetOptions(tile)
 	event := map[string]interface{}{
 		"type": "BRANCH_CHOICE_REQUIRED",
@@ -51,10 +52,10 @@ func (m *GameManager) sendBranchSelection(player *sugoroku.Player, tile *sugorok
 			"options": options,
 		},
 	}
-	return m.hub.SendToPlayer(player.GetID(), event)
+	return gm.hub.SendToPlayer(player.GetID(), event)
 }
 
-func (m *GameManager) sendQuizInfo(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.QuizEffect) error {
+func (gm *GameManager) sendQuizInfo(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.QuizEffect) error {
 	quizData := effect.GetOptions(tile)
 	event := map[string]interface{}{
 		"type": "QUIZ_REQUIRED",
@@ -63,10 +64,10 @@ func (m *GameManager) sendQuizInfo(player *sugoroku.Player, tile *sugoroku.Tile,
 			"quizData": quizData,
 		},
 	}
-	return m.hub.SendToPlayer(player.GetID(), event)
+	return gm.hub.SendToPlayer(player.GetID(), event)
 }
 
-func (m *GameManager) sendGambleRequire(player *sugoroku.Player, tile *sugoroku.Tile) error {
+func (gm *GameManager) sendGambleRequire(player *sugoroku.Player, tile *sugoroku.Tile) error {
 	baseValue := 3
 	event := map[string]interface{}{
 		"type": "GAMBLE_REQUIRED",
@@ -75,7 +76,7 @@ func (m *GameManager) sendGambleRequire(player *sugoroku.Player, tile *sugoroku.
 			"referenceValue": baseValue,
 		},
 	}
-	return m.hub.SendToPlayer(player.GetID(), event)
+	return gm.hub.SendToPlayer(player.GetID(), event)
 }
 
 func (gm *GameManager) sendGambleResult(playerID string, payload map[string]interface{}) {
@@ -90,4 +91,32 @@ func (gm *GameManager) sendGambleResult(playerID string, payload map[string]inte
 	if err := gm.hub.SendToPlayer(playerID, message); err != nil {
 		log.Printf("error: failed to send gamble result to player %s: %v", playerID, err)
 	}
+}
+
+func (gm *GameManager) sendDiceRollResult(playerID string, diceResult int) error {
+	event := map[string]interface{}{
+		"type": "DICE_RESULT",
+		"payload": map[string]interface{}{
+			"userID":     playerID,
+			"diceResult": diceResult,
+		},
+	}
+	return gm.hub.SendToPlayer(playerID, event)
+}
+
+func (gm *GameManager) sendGoal(playerID string) error {
+	player, err := gm.game.GetPlayer(playerID)
+	if err != nil {
+		return fmt.Errorf("failed to get player: %w", err)
+	}
+
+	money := player.GetMoney()
+	event := map[string]interface{}{
+		"type": "GOAL_RESULT",
+		"payload": map[string]interface{}{
+			"userID": playerID,
+			"money":  money,
+		},
+	}
+	return gm.hub.SendToPlayer(playerID, event)
 }

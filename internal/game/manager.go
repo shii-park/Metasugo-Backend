@@ -1,7 +1,6 @@
 package game
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 
@@ -38,7 +37,7 @@ func (gm *GameManager) RegisterPlayerClient(userID string, c *hub.Client) error 
 func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	player, err := m.game.GetPlayer(playerID)
 	if err != nil {
-		return errors.New("invalid player id")
+		return fmt.Errorf("failed to get player: %w", err)
 	}
 
 	// 1. 移動前の状態を記録
@@ -46,13 +45,13 @@ func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	initialMoney := player.GetMoney()
 
 	// 2. プレイヤーを移動させる
-	player.Move(steps)
+	flag := player.Move(steps) //めんどくさくなったのでフラグで実装してる。Effect型で比較するなどもっといいやり方はあると思う
 
 	// 3. マス効果を判定・適用
 	currentTile := player.GetPosition()
 	effect := currentTile.GetEffect()
 
-	if effect.RequiresUserInput() {
+	if effect.RequiresUserInput() || flag == "GOAL" {
 		// 3a. ユーザー入力が必要な場合 (Applyはここでは呼ばない)
 		switch e := effect.(type) {
 		case sugoroku.BranchEffect:
@@ -61,6 +60,8 @@ func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 			return m.sendQuizInfo(player, currentTile, e)
 		case sugoroku.GambleEffect:
 			return m.sendGambleRequire(player, currentTile)
+		case sugoroku.GoalEffect:
+			return m.sendGoal(playerID) // TODO: ゴールした際に行う処理(clientとの接続解除など)を行ったほうが良いと思う
 		default:
 			return fmt.Errorf("unhandled user input required for effect type %T", e)
 		}

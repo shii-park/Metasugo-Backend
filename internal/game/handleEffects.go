@@ -7,6 +7,17 @@ import (
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
 )
 
+func (gm *GameManager) HandleMove(playerID string) error {
+	diceRollResult := sugoroku.RollDice()
+	if err := gm.sendDiceRollResult(playerID, diceRollResult); err != nil {
+		return fmt.Errorf("failed to send dice result: %w", err)
+	}
+	if err := gm.MoveByDiceRoll(playerID, diceRollResult); err != nil {
+		return fmt.Errorf("failed to move player: %w", err)
+	}
+	return nil
+}
+
 // SUBMIT_BRANCHリクエスト時に発火する関数。
 // 選んだタイルIDの方向へ移動させる。
 func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interface{}) error {
