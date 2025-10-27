@@ -15,6 +15,7 @@ const (
 	neighbor TileKind = "neighbor"
 	require  TileKind = "require"
 	gamble   TileKind = "gamble"
+	goal     TileKind = "goal"
 )
 
 const TilesJSONPath = "./tiles.json"

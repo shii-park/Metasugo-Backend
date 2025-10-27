@@ -65,6 +65,9 @@ type Quiz struct {
 	AnswerDescription string   `json:"answer_description"`
 }
 
+type GoalEffect struct {
+}
+
 // お金を増やす効果
 func (e ProfitEffect) RequiresUserInput() bool { return false }
 
@@ -277,6 +280,15 @@ func (e NoEffect) RequiresUserInput() bool { return false }
 func (e NoEffect) GetOptions(tile *Tile) any { return nil }
 
 func (e NoEffect) Apply(p *Player, g *Game, choice any) error {
+	return nil
+}
+
+func (e GoalEffect) RequiresUserInput() bool { return false }
+
+func (e GoalEffect) GetOptions(tile *Tile) any { return nil }
+
+func (e GoalEffect) Apply(p *Player, g *Game, choice any) error {
+
 	return nil
 }
 

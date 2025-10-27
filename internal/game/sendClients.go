@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
@@ -98,6 +99,23 @@ func (gm *GameManager) sendDiceRollResult(playerID string, diceResult int) error
 		"payload": map[string]interface{}{
 			"userID":     playerID,
 			"diceResult": diceResult,
+		},
+	}
+	return gm.hub.SendToPlayer(playerID, event)
+}
+
+func (gm *GameManager) sendGoal(playerID string) error {
+	player, err := gm.game.GetPlayer(playerID)
+	if err != nil {
+		return fmt.Errorf("failed to get player: %w", err)
+	}
+
+	money := player.GetMoney()
+	event := map[string]interface{}{
+		"type": "GOAL_RESULT",
+		"payload": map[string]interface{}{
+			"userID": playerID,
+			"money":  money,
 		},
 	}
 	return gm.hub.SendToPlayer(playerID, event)

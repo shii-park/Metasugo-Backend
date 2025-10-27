@@ -34,13 +34,16 @@ func (p *Player) movePrevTile() {
 	}
 }
 
-func (p *Player) Move(steps int) {
+func (p *Player) Move(steps int) string {
 	for i := 0; i < steps; i++ {
 		p.moveNextTile()
 		if p.position.kind == branch {
-			return
+			return "BRANCH"
+		} else if p.position.kind == goal {
+			return "GOAL"
 		}
 	}
+	return ""
 }
 
 // プレイヤーのお金を増やすメソッド
@@ -98,4 +101,9 @@ func (p *Player) GetPosition() *Tile {
 
 func (p *Player) GetMoney() int {
 	return p.money
+}
+
+// SetPosition is a method for testing purposes.
+func (p *Player) SetPosition(tile *Tile) {
+	p.position = tile
 }
