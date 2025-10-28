@@ -31,17 +31,16 @@ func NewHub() *Hub {
 	}
 }
 
-// NewClient creates a new Client associated with this Hub.
 func (h *Hub) NewClient(conn *websocket.Conn, playerID string) *Client {
 	return &Client{
 		Hub:      h,
 		Conn:     conn,
 		Send:     make(chan []byte, 256),
+		Receive:  make(chan []byte, 256),
 		PlayerID: playerID,
 	}
 }
 
-// Run starts the hub's processing loop.
 func (h *Hub) Run() {
 	for {
 		select {

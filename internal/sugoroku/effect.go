@@ -13,7 +13,7 @@ type Effect interface {
 	GetOptions(tile *Tile) any
 }
 
-const QuizJSONPath = "./quizzes.json"
+var QuizJSONPath = "./quizzes.json"
 
 // グローバル変数にキャッシュしておく
 var quizzes []Quiz
@@ -65,6 +65,9 @@ type Quiz struct {
 	AnswerDescription string   `json:"answer_description"`
 }
 
+type GoalEffect struct {
+}
+
 // お金を増やす効果
 func (e ProfitEffect) RequiresUserInput() bool { return false }
 
@@ -88,9 +91,43 @@ func (e LossEffect) Apply(p *Player, g *Game, choice any) error {
 // クイズ効果
 func (e QuizEffect) RequiresUserInput() bool { return true }
 
-func (e QuizEffect) GetOptions(tile *Tile) any { return nil }
+func (e QuizEffect) GetOptions(tile *Tile) any {
+	for _, quiz := range quizzes {
+		if quiz.ID == e.QuizID {
+			return quiz
+		}
+	}
+	return nil
+}
 
 func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
+	var selectedOptionIndex int
+	switch v := choice.(type) {
+	case int:
+		selectedOptionIndex = v
+	case float64:
+		selectedOptionIndex = int(v)
+	default:
+		return fmt.Errorf("invalid choice for quiz: unexpected type %T", v)
+	}
+
+	var targetQuiz *Quiz
+	for i := range quizzes {
+		if quizzes[i].ID == e.QuizID {
+			targetQuiz = &quizzes[i]
+			break
+		}
+	}
+
+	if targetQuiz == nil {
+		return fmt.Errorf("quiz with ID %d not found", e.QuizID)
+	}
+
+	if selectedOptionIndex == targetQuiz.AnswerIndex {
+		p.Profit(e.Amount)
+	} else {
+		p.Loss(e.Amount)
+	}
 
 	return nil
 }
@@ -243,6 +280,15 @@ func (e NoEffect) RequiresUserInput() bool { return false }
 func (e NoEffect) GetOptions(tile *Tile) any { return nil }
 
 func (e NoEffect) Apply(p *Player, g *Game, choice any) error {
+	return nil
+}
+
+func (e GoalEffect) RequiresUserInput() bool { return false }
+
+func (e GoalEffect) GetOptions(tile *Tile) any { return nil }
+
+func (e GoalEffect) Apply(p *Player, g *Game, choice any) error {
+
 	return nil
 }
 
