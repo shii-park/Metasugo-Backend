@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"cloud.google.com/go/firestore"
-	firebase "firebase.google.com/go/v4"
 	"google.golang.org/api/option"
 )
 
@@ -28,16 +27,13 @@ func NewFirestoreClient() (*firestore.Client, error) {
 	firestoreOnce.Do(func() {
 		ctx := context.Background()
 		sa := option.WithCredentialsFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-		app, err := firebase.NewApp(ctx, nil, sa)
-		if err != nil {
-			log.Printf("error initializing app: %v\n", err)
-			firestoreErr = err
-			return
-		}
+		projectID := os.Getenv("FIREBASE_PROJECT_ID")
 
-		client, err := app.Firestore(ctx)
+		databaseID := os.Getenv("FIRESTORE_DB_ID")
+
+		client, err := firestore.NewClientWithDatabase(ctx, projectID, databaseID, sa)
 		if err != nil {
-			log.Printf("error initializing firestore client: %v\n", err)
+			log.Printf("error initializing firestore client with database ID: %v\n", err)
 			firestoreErr = err
 			return
 		}
