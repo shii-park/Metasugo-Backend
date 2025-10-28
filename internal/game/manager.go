@@ -1,11 +1,15 @@
 package game
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
+	"cloud.google.com/go/firestore"
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
+	"github.com/shii-park/Metasugo-Backend/internal/service"
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
 )
 
@@ -13,14 +17,20 @@ type GameManager struct {
 	game          *sugoroku.Game
 	hub           *hub.Hub
 	playerClients map[string]*hub.Client
+	firestore     *firestore.Client
 	mu            sync.RWMutex
 }
 
 func NewGameManager(g *sugoroku.Game, h *hub.Hub) *GameManager {
+	fs, err := service.GetFirestoreClient()
+	if err != nil {
+		log.Fatalf("failed to get firestore client: %v", err)
+	}
 	return &GameManager{
 		game:          g,
 		hub:           h,
 		playerClients: make(map[string]*hub.Client),
+		firestore:     fs,
 	}
 }
 func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
@@ -113,6 +123,20 @@ func (gm *GameManager) Goal(playerID string, c *hub.Client) error {
 		return fmt.Errorf("failed to get player: %w", err)
 	}
 	money := player.GetMoney()
+
+	// Firestoreに保存するデータを作成
+	data := map[string]interface{}{
+		"playerID":   playerID,
+		"money":      money,
+		"finishedAt": time.Now(),
+	}
+
+	// Firestoreにデータを保存
+	ctx := context.Background()
+	_, err = gm.firestore.Collection("playerClearData").Doc(playerID).Set(ctx, data)
+	if err != nil {
+		return fmt.Errorf("failed to save player data to firestore: %w", err)
+	}
 
 	gm.broadcastPlayerFinished(playerID, money)
 
