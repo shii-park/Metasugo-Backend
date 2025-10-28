@@ -60,10 +60,6 @@ func AuthToken() gin.HandlerFunc {
 		}
 
 
-		if idToken == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "認証トークンが見つかりません"})
-			return
-		}
 
 		token, err := firebaseAuth.VerifyIDToken(c.Request.Context(), idToken)
 		if err != nil {
