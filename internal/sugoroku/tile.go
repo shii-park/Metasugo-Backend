@@ -159,6 +159,8 @@ func InitTilesFromPath(path string) (map[int]*Tile, error) {
 				effect = requireEffect
 			case gamble:
 				effect = GambleEffect{}
+			case goal:
+				effect = GoalEffect{}
 			default:
 				effect = nil
 			}
