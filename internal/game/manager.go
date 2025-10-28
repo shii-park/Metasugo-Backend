@@ -22,20 +22,8 @@ func NewGameManager(g *sugoroku.Game, h *hub.Hub) *GameManager {
 		playerClients: make(map[string]*hub.Client),
 	}
 }
-
-func (gm *GameManager) RegisterPlayerClient(userID string, c *hub.Client) error {
-	gm.mu.Lock()
-	defer gm.mu.Unlock()
-	_, err := gm.game.AddPlayer(userID)
-	if err != nil {
-		return err
-	}
-	gm.playerClients[userID] = c
-	return nil
-}
-
-func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
-	player, err := m.game.GetPlayer(playerID)
+func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
+	player, err := gm.game.GetPlayer(playerID)
 	if err != nil {
 		return fmt.Errorf("failed to get player: %w", err)
 	}
@@ -47,27 +35,27 @@ func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	// 2. プレイヤーを移動させる
 	flag := player.Move(steps) //めんどくさくなったのでフラグで実装してる。Effect型で比較するなどもっといいやり方はあると思う
 
-	// 3. マス効果を判定・適用
+	// 効果を判定
 	currentTile := player.GetPosition()
 	effect := currentTile.GetEffect()
 
 	if effect.RequiresUserInput() || flag == "GOAL" {
-		// 3a. ユーザー入力が必要な場合 (Applyはここでは呼ばない)
+		// ユーザからの入力が必要な場合、もしくはゴールの場合こちらで処理
 		switch e := effect.(type) {
 		case sugoroku.BranchEffect:
-			return m.sendBranchSelection(player, currentTile, e)
+			return gm.sendBranchSelection(player, currentTile, e)
 		case sugoroku.QuizEffect:
-			return m.sendQuizInfo(player, currentTile, e)
+			return gm.sendQuizInfo(player, currentTile, e)
 		case sugoroku.GambleEffect:
-			return m.sendGambleRequire(player, currentTile)
+			return gm.sendGambleRequire(player, currentTile)
 		case sugoroku.GoalEffect:
-			return m.sendGoal(playerID) // TODO: ゴールした際に行う処理(clientとの接続解除など)を行ったほうが良いと思う
+			return gm.Goal(playerID, gm.playerClients[playerID]) // TODO: ゴールした際に行う処理(clientとの接続解除など)を行ったほうが良いと思う
 		default:
 			return fmt.Errorf("unhandled user input required for effect type %T", e)
 		}
 	} else {
-		// 3b. 即時効果の場合 (ここでApplyを呼ぶ)
-		if err := effect.Apply(player, m.game, nil); err != nil {
+		// 即時効果を適用
+		if err := effect.Apply(player, gm.game, nil); err != nil {
 			return err
 		}
 	}
@@ -77,11 +65,46 @@ func (m *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	finalMoney := player.GetMoney()
 
 	if initialPosition != finalPosition {
-		m.broadcastPlayerMoved(playerID, finalPosition)
+		gm.broadcastPlayerMoved(playerID, finalPosition)
 	}
 	if initialMoney != finalMoney {
-		m.broadcastMoneyChanged(playerID, finalMoney)
+		gm.broadcastMoneyChanged(playerID, finalMoney)
 	}
 
+	return nil
+}
+
+func (gm *GameManager) RegisterPlayerClient(playerID string, c *hub.Client) error {
+	gm.mu.Lock()
+	defer gm.mu.Unlock()
+	_, err := gm.game.AddPlayer(playerID)
+	if err != nil {
+		return err
+	}
+	gm.playerClients[playerID] = c
+	return nil
+}
+
+func (gm *GameManager) UnregisterPlayerClient(playerID string, c *hub.Client) error {
+	gm.mu.Lock()
+	defer gm.mu.Unlock()
+	// ゲームからプレイヤーを削除
+	err := gm.game.DeletePlayer(playerID)
+	if err != nil {
+		return err
+	}
+	// GameManagerからプレイヤーを削除
+	delete(gm.playerClients, playerID)
+	return nil
+
+}
+
+func (gm *GameManager) Goal(playerID string, c *hub.Client) error {
+	if err := gm.sendGoal(playerID); err != nil {
+		return err
+	}
+	if err := gm.UnregisterPlayerClient(playerID, c); err != nil {
+		return err
+	}
 	return nil
 }
