@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
@@ -36,6 +37,15 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	flag := player.Move(steps) //めんどくさくなったのでフラグで実装してる。Effect型で比較するなどもっといいやり方はあると思う
 
 	// 効果を判定
+	log.Printf("PlayerMoved: %s moved to %d", playerID, player.GetPosition().GetID())
+	// 3. マス効果を判定・適用
+
+	finalPosition := player.GetPosition().GetID()
+
+	if initialPosition != finalPosition {
+		gm.broadcastPlayerMoved(playerID, finalPosition)
+	}
+
 	currentTile := player.GetPosition()
 	effect := currentTile.GetEffect()
 
@@ -60,13 +70,8 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 		}
 	}
 
-	// 4. 最終的な状態の変化を検知して通知
-	finalPosition := player.GetPosition().GetID()
 	finalMoney := player.GetMoney()
 
-	if initialPosition != finalPosition {
-		gm.broadcastPlayerMoved(playerID, finalPosition)
-	}
 	if initialMoney != finalMoney {
 		gm.broadcastMoneyChanged(playerID, finalMoney)
 	}

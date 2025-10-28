@@ -2,6 +2,7 @@ package sugoroku
 
 import (
 	"errors"
+	"log"
 	"sync"
 )
 
@@ -54,6 +55,7 @@ func (p *Player) Profit(amount int) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.money += amount
+	log.Printf("PlayerProfit: %s earned %d. Wallet: %d", p.id, amount, p.money)
 	return nil
 }
 
@@ -65,6 +67,8 @@ func (p *Player) Loss(amount int) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.money -= amount
+	log.Printf("PlayerLose: %s lose %d. Wallet: %d", p.id, amount, p.money)
+
 	return nil
 }
 

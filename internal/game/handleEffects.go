@@ -3,6 +3,7 @@ package game
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
 )
@@ -34,6 +35,7 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 	currentTile := player.GetPosition()
 	effect := currentTile.GetEffect()
 	choice := choiceData["selection"]
+
 	if err := effect.Apply(player, m.game, choice); err != nil {
 		return fmt.Errorf("failed to apply choice: %w", err)
 	}
@@ -45,6 +47,8 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 	// 状態が変化していれば、全クライアントに通知
 	if initialPosition != finalPosition {
 		m.broadcastPlayerMoved(playerID, finalPosition)
+		log.Printf("PlayerMoved: %s moved to %d", playerID, player.GetPosition().GetID())
+
 	}
 	if initialMoney != finalMoney {
 		m.broadcastMoneyChanged(playerID, finalMoney)
