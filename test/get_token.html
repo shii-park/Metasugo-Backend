@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Firebase ID Token Retriever</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #config, #login, #result { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+        textarea { width: 100%; height: 150px; font-family: monospace; }
+        input { width: calc(100% - 10px); margin-bottom: 10px; }
+        button { padding: 10px 15px; }
+        #token-output { word-break: break-all; white-space: pre-wrap; background-color: #f4f4f4; padding: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Firebase ID Token Retriever</h1>
+
+    <div id="config">
+        <h2>1. Firebase Config</h2>
+        <p>Paste your Firebase project's web app configuration here:</p>
+        <textarea id="firebase-config" placeholder="{
+  apiKey: 'AIza...', 
+  authDomain: 'your-project.firebaseapp.com', 
+  projectId: 'your-project', 
+  storageBucket: 'your-project.appspot.com', 
+  messagingSenderId: '...', 
+  appId: '1:...:web:...'
+}"></textarea>
+    </div>
+
+    <div id="login">
+        <h2>2. Login</h2>
+        <p>Enter test user credentials (must exist in Firebase Authentication):</p>
+        <label for="email">Email:</label>
+        <input type="email" id="email" placeholder="test@example.com">
+        <label for="password">Password:</label>
+        <input type="password" id="password">
+        <button id="login-btn">Sign In & Get ID Token</button>
+    </div>
+
+    <div id="result">
+        <h2>3. Resulting ID Token</h2>
+        <pre id="token-output">(Token will appear here)</pre>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+    <script>
+        const loginBtn = document.getElementById('login-btn');
+        const configInput = document.getElementById('firebase-config');
+        const tokenOutput = document.getElementById('token-output');
+
+        let firebaseApp;
+
+        function initializeFirebase(config) {
+            try {
+                if (firebaseApp) return; // Already initialized
+                firebaseApp = firebase.initializeApp(config);
+            } catch (e) {
+                tokenOutput.textContent = `Error initializing Firebase: ${e.message}`;
+                throw e;
+            }
+        }
+
+        loginBtn.addEventListener('click', async () => {
+            tokenOutput.textContent = 'Getting token...';
+            
+            let firebaseConfig;
+            try {
+                // The config from Firebase is a JS object, not strict JSON. 
+                // We use the Function constructor to safely parse it.
+                const configString = configInput.value.trim();
+                if (!configString) {
+                    throw new Error('Config cannot be empty.');
+                }
+                // Remove potential 'const firebaseConfig = ' and trailing ';'
+                const sanitizedConfigString = configString.replace(/^.*=\s*/, '').replace(/;\s*$/, '');
+                firebaseConfig = (new Function(`return ${sanitizedConfigString}`))();
+
+            } catch (e) {
+                tokenOutput.textContent = `Invalid Firebase Config: ${e.message}`;
+                return;
+            }
+
+            try {
+                initializeFirebase(firebaseConfig);
+
+                const auth = firebase.auth();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const idToken = await userCredential.user.getIdToken();
+
+                tokenOutput.textContent = idToken;
+
+            } catch (error) {
+                tokenOutput.textContent = `Error: ${error.code} - ${error.message}`;
+            }
+        });
+    </script>
+
+</body>
+</html>
