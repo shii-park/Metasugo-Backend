@@ -61,9 +61,8 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 		case sugoroku.GoalEffect:
 			if err := gm.Goal(playerID, gm.playerClients[playerID]); err != nil { // TODO: ゴールした際に行う処理(clientとの接続解除など)を行ったほうが良いと思う
 				return err
-			} else {
-				return nil //ゲーム終了するのでここで関数を脱出！
 			}
+			return nil //ゲーム終了するのでここで関数を脱出！
 		default:
 			return fmt.Errorf("unhandled user input required for effect type %T", e)
 		}
