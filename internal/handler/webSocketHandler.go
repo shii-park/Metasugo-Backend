@@ -37,11 +37,11 @@ func NewWebSocketHandler(h *hub.Hub) *WebSocketHandler {
 // Websocket接続時のハンドラー
 func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := "TestUser" /*c.GetString("firebase_uid")
+		userID := c.GetString("firebase_uid")
 		if userID == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "ログインしていません"})
 			return
-		}*/
+		}
 
 		//HTTPをWebSocketに昇格
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
