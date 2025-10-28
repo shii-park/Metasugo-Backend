@@ -261,9 +261,6 @@ func (e GambleEffect) Apply(p *Player, g *Game, choice any) error {
 	if int(bet) <= 0 {
 		return errors.New("bet must be positive")
 	}
-	if p.GetMoney() < int(bet) {
-		return errors.New("insufficient money")
-	}
 
 	choiceStr, ok := userInput["choice"].(string)
 	if !ok || (choiceStr != "High" && choiceStr != "Low") {
