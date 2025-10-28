@@ -132,7 +132,8 @@ func (gm *GameManager) Goal(playerID string, c *hub.Client) error {
 	}
 
 	// Firestoreにデータを保存
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 	_, err = gm.firestore.Collection("playerClearData").Doc(playerID).Set(ctx, data)
 	if err != nil {
 		return fmt.Errorf("failed to save player data to firestore: %w", err)
