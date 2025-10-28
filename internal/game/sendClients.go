@@ -2,7 +2,6 @@ package game
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
@@ -10,38 +9,24 @@ import (
 
 // broadcastMoneyChanged は所持金変動イベントを全クライアントに通知
 func (gm *GameManager) broadcastMoneyChanged(userID string, newMoney int) {
-	message, err := json.Marshal(map[string]interface{}{
+	gm.hub.Broadcast(map[string]interface{}{
 		"type": "MONEY_CHANGED",
 		"payload": map[string]interface{}{
 			"userID":   userID,
 			"newMoney": newMoney,
 		},
 	})
-
-	if err != nil {
-		log.Printf("error: could not marshal money changed event: %v", err)
-		return
-	}
-
-	gm.hub.Broadcast(message)
 }
 
 // broadcastPlayerMoved はプレイヤー移動イベントを全クライアントに通知
 func (gm *GameManager) broadcastPlayerMoved(userID string, newPosition int) {
-	message, err := json.Marshal(map[string]interface{}{
+	gm.hub.Broadcast(map[string]interface{}{
 		"type": "PLAYER_MOVED",
 		"payload": map[string]interface{}{
 			"userID":      userID,
 			"newPosition": newPosition,
 		},
 	})
-
-	if err != nil {
-		log.Printf("error: could not marshal player moved event: %v", err)
-		return
-	}
-
-	gm.hub.Broadcast(message)
 }
 func (gm *GameManager) sendBranchSelection(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.BranchEffect) error {
 	options := effect.GetOptions(tile)
@@ -104,19 +89,13 @@ func (gm *GameManager) sendDiceRollResult(playerID string, diceResult int) error
 	return gm.hub.SendToPlayer(playerID, event)
 }
 
-func (gm *GameManager) sendGoal(playerID string) error {
-	player, err := gm.game.GetPlayer(playerID)
-	if err != nil {
-		return fmt.Errorf("failed to get player: %w", err)
-	}
-
-	money := player.GetMoney()
-	event := map[string]interface{}{
-		"type": "GOAL_RESULT",
+// broadcastPlayerFinished はプレイヤーがゴールしたことを全クライアントに通知
+func (gm *GameManager) broadcastPlayerFinished(userID string, money int) {
+	gm.hub.Broadcast(map[string]interface{}{
+		"type": "PLAYER_FINISHED",
 		"payload": map[string]interface{}{
-			"userID": playerID,
+			"userID": userID,
 			"money":  money,
 		},
-	}
-	return gm.hub.SendToPlayer(playerID, event)
+	})
 }

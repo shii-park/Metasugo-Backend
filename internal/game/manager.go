@@ -100,9 +100,14 @@ func (gm *GameManager) UnregisterPlayerClient(playerID string, c *hub.Client) er
 }
 
 func (gm *GameManager) Goal(playerID string, c *hub.Client) error {
-	if err := gm.sendGoal(playerID); err != nil {
-		return err
+	player, err := gm.game.GetPlayer(playerID)
+	if err != nil {
+		return fmt.Errorf("failed to get player: %w", err)
 	}
+	money := player.GetMoney()
+
+	gm.broadcastPlayerFinished(playerID, money)
+
 	if err := gm.UnregisterPlayerClient(playerID, c); err != nil {
 		return err
 	}

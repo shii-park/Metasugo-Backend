@@ -5,6 +5,7 @@ package hub
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -84,8 +85,13 @@ func (h *Hub) Unregister(client *Client) {
 	h.unregister <- client
 }
 
-func (h *Hub) Broadcast(message []byte) {
-	h.broadcast <- message
+func (h *Hub) Broadcast(message interface{}) {
+	rawMessage, err := json.Marshal(message)
+	if err != nil {
+		log.Printf("error: could not marshal broadcast message: %v", err)
+		return
+	}
+	h.broadcast <- rawMessage
 }
 
 // 特定のプレイヤーにJSONメッセージを送信する
