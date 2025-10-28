@@ -1,7 +1,6 @@
 package game
 
 import (
-	"encoding/json"
 	"log"
 
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
@@ -65,15 +64,11 @@ func (gm *GameManager) sendGambleRequire(player *sugoroku.Player, tile *sugoroku
 }
 
 func (gm *GameManager) sendGambleResult(playerID string, payload map[string]interface{}) {
-	message, err := json.Marshal(map[string]interface{}{
+	event := map[string]interface{}{
 		"type":    "GAMBLE_RESULT",
 		"payload": payload,
-	})
-	if err != nil {
-		log.Printf("error: could not marshal gamble result event: %v", err)
-		return
 	}
-	if err := gm.hub.SendToPlayer(playerID, message); err != nil {
+	if err := gm.hub.SendToPlayer(playerID, event); err != nil {
 		log.Printf("error: failed to send gamble result to player %s: %v", playerID, err)
 	}
 }
