@@ -83,7 +83,7 @@ func (g *Game) DeletePlayer(playerID string) error {
 		log.Printf("DeletePlayer: %s has deleted", playerID)
 		return nil
 	}
-	return fmt.Errorf("player with id %s does not exists", playerID)
+	return fmt.Errorf("player with id %s does not exist", playerID)
 }
 
 func (g *Game) GetAllPlayers() []*Player {
