@@ -1,21 +1,67 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"os"
 	"sync"
+
+	"cloud.google.com/go/firestore"
+	"google.golang.org/api/option"
 )
 
 var (
 	loadOnce  sync.Once
 	loadErr   error
 	tilesData map[string]interface{}
+
+	firestoreClient *firestore.Client
+	firestoreOnce   sync.Once
+	firestoreErr    error
 )
+
+// NewFirestoreClient initializes the Firestore client
+func NewFirestoreClient() (*firestore.Client, error) {
+	firestoreOnce.Do(func() {
+		ctx := context.Background()
+		sa := option.WithCredentialsFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+		projectID := os.Getenv("FIREBASE_PROJECT_ID")
+
+		databaseID := os.Getenv("FIRESTORE_DB_ID")
+
+		client, err := firestore.NewClientWithDatabase(ctx, projectID, databaseID, sa)
+		if err != nil {
+			log.Printf("error initializing firestore client with database ID: %v\n", err)
+			firestoreErr = err
+			return
+		}
+		firestoreClient = client
+	})
+
+	if firestoreErr != nil {
+		return nil, firestoreErr
+	}
+	if firestoreClient == nil {
+		return nil, errors.New("firestore client is not initialized")
+	}
+
+	return firestoreClient, nil
+}
+
+func GetFirestoreClient() (*firestore.Client, error) {
+	return NewFirestoreClient()
+}
 
 func GetTiles() (interface{}, error) {
 	loadOnce.Do(func() {
-		file, err := os.Open("TILES_JSON_PATH") //TODO: パスを環境変数に設定
+		filePath := os.Getenv("TILES_JSON_PATH")
+		if filePath == "" {
+			loadErr = errors.New("TILES_JSON_PATH environment variable not set")
+			return
+		}
+		file, err := os.Open(filePath)
 		if err != nil {
 			loadErr = err
 			return

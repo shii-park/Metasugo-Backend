@@ -40,17 +40,26 @@ func AuthToken() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "認証システムが初期化されていません"})
 			return
 		}
-		authHeader := strings.TrimSpace(c.GetHeader("Authorization"))
-		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorizationヘッダが必要です"})
-			return
+
+		// クエリパラメータからトークンを取得しようと試みる
+		idToken := c.Query("token")
+
+		// クエリにトークンがない場合、Authorizationヘッダーを確認
+		if idToken == "" {
+			authHeader := strings.TrimSpace(c.GetHeader("Authorization"))
+			if authHeader == "" {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorizationヘッダまたは'token'クエリパラメータが必要です"})
+				return
+			}
+			lower := strings.ToLower(authHeader)
+			if !strings.HasPrefix(lower, "bearer ") {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "無効な認証形式です"})
+				return
+			}
+			idToken = strings.TrimSpace(authHeader[len("Bearer "):])
 		}
-		lower := strings.ToLower(authHeader)
-		if !strings.HasPrefix(lower, "bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "無効な認証形式です"})
-			return
-		}
-		idToken := strings.TrimSpace(authHeader[len("Bearer "):])
+
+
 
 		token, err := firebaseAuth.VerifyIDToken(c.Request.Context(), idToken)
 		if err != nil {

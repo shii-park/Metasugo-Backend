@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Game Test</title>
+    <style>
+        body { font-family: sans-serif; display: flex; }
+        .main { flex: 2; padding-right: 20px; }
+        .sidebar { flex: 1; border-left: 1px solid #ccc; padding-left: 20px; }
+        #log { border: 1px solid #ccc; padding: 10px; height: 600px; overflow-y: scroll; margin-bottom: 10px; font-family: monospace; white-space: pre; }
+        .controls fieldset { margin-bottom: 15px; }
+        .controls button { margin-right: 5px; }
+        input[type="text"], input[type="number"] { margin-bottom: 5px; }
+        #auth-token { width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <h1>WebSocket Game Test</h1>
+        <div>
+            <label for="auth-token">Auth Token (Firebase ID Token):</label><br>
+            <input type="text" id="auth-token" placeholder="Enter your Firebase ID token here"><br>
+            <label for="ws-url">WebSocket URL:</label>
+            <input type="text" id="ws-url" value="ws://localhost:8080/ws" style="width: 300px;">
+            <button id="connect-btn">Connect</button>
+            <button id="disconnect-btn" disabled>Disconnect</button>
+        </div>
+        <hr>
+        <div class="controls">
+            <fieldset>
+                <legend><strong>ROLL_DICE</strong></legend>
+                <p>サイコロを振ってコマを進めます。</p>
+                <button id="roll-dice-btn" disabled>ROLL_DICE</button>
+            </fieldset>
+
+            <fieldset>
+                <legend><strong>SUBMIT_CHOICE</strong></legend>
+                <p>分岐マスに止まった際に使用します。</p>
+                <label for="choice-selection">Selection (Tile ID):</label><br>
+                <input type="number" id="choice-selection" placeholder="e.g., 15"><br>
+                <button id="submit-choice-btn" disabled>SUBMIT_CHOICE</button>
+            </fieldset>
+
+            <fieldset>
+                <legend><strong>SUBMIT_GAMBLE</strong></legend>
+                <p>ギャンブルマスに止まった際に使用します。</p>
+                <label for="gamble-bet">Bet Amount:</label><br>
+                <input type="number" id="gamble-bet" placeholder="e.g., 100"><br>
+                <label>Choice:</label><br>
+                <input type="radio" id="gamble-high" name="gamble-choice" value="High" checked>
+                <label for="gamble-high">High</label>
+                <input type="radio" id="gamble-low" name="gamble-choice" value="Low">
+                <label for="gamble-low">Low</label><br>
+                <button id="submit-gamble-btn" disabled>SUBMIT_GAMBLE</button>
+            </fieldset>
+
+            <fieldset>
+                <legend><strong>SUBMIT_QUIZ</strong></legend>
+                <p>クイズマスに止まった際に使用します。</p>
+                <label for="quiz-selection">Selection (Answer Index):</label><br>
+                <input type="number" id="quiz-selection" placeholder="e.g., 0"><br>
+                <button id="submit-quiz-btn" disabled>SUBMIT_QUIZ</button>
+            </fieldset>
+        </div>
+    </div>
+    <div class="sidebar">
+        <h2>Log</h2>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const wsUrlInput = document.getElementById('ws-url');
+        const authTokenInput = document.getElementById('auth-token');
+        const connectBtn = document.getElementById('connect-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const logDiv = document.getElementById('log');
+
+        const allButtons = [
+            'roll-dice-btn', 'submit-choice-btn', 'submit-gamble-btn', 'submit-quiz-btn'
+        ];
+
+        let socket;
+
+        function log(type, message) {
+            const p = document.createElement('p');
+            let content = `<strong>[${type}]</strong> ${new Date().toLocaleTimeString()}\n`;
+            if (typeof message === 'object') {
+                content += JSON.stringify(message, null, 2);
+            } else {
+                content += message;
+            }
+            p.innerHTML = content;
+            logDiv.appendChild(p);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function setControlsDisabled(disabled) {
+            connectBtn.disabled = !disabled;
+            disconnectBtn.disabled = disabled;
+            allButtons.forEach(id => {
+                document.getElementById(id).disabled = disabled;
+            });
+        }
+
+        connectBtn.addEventListener('click', () => {
+            const url = wsUrlInput.value;
+            const token = authTokenInput.value;
+
+            if (!token) {
+                alert('Auth Token is required.');
+                return;
+            }
+
+            const fullUrl = `${url}?token=${encodeURIComponent(token)}`;
+            log('SYSTEM', `Connecting to ${fullUrl}`);
+            socket = new WebSocket(fullUrl);
+
+            socket.onopen = () => {
+                log('SYSTEM', 'WebSocket connection opened.');
+                setControlsDisabled(false);
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    log('RECEIVED', data);
+                } catch (e) {
+                    log('RECEIVED (raw)', event.data);
+                }
+            };
+
+            socket.onclose = (event) => {
+                log('SYSTEM', `WebSocket connection closed. Code: ${event.code}, Reason: ${event.reason}`);
+                setControlsDisabled(true);
+            };
+
+            socket.onerror = (error) => {
+                log('ERROR', `WebSocket error: ${error.message || 'Unknown error'}`);
+            };
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            if (socket) socket.close();
+        });
+
+        function sendMessage(type, payload) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const message = { type, payload };
+                socket.send(JSON.stringify(message));
+                log('SENT', message);
+            } else {
+                log('ERROR', 'WebSocket is not connected.');
+            }
+        }
+
+        document.getElementById('roll-dice-btn').addEventListener('click', () => {
+            sendMessage('ROLL_DICE', {});
+        });
+
+        document.getElementById('submit-choice-btn').addEventListener('click', () => {
+            const value = document.getElementById('choice-selection').value;
+            if (value === '') {
+                alert('Selection (Tile ID) is required.');
+                return;
+            }
+            const selection = parseInt(value, 10);
+            if (isNaN(selection)) {
+                alert('Invalid number for Tile ID.');
+                return;
+            }
+            sendMessage('SUBMIT_CHOICE', { selection: selection });
+        });
+        
+        document.getElementById('submit-gamble-btn').addEventListener('click', () => {
+            const bet = parseInt(document.getElementById('gamble-bet').value, 10);
+            const choice = document.querySelector('input[name="gamble-choice"]:checked').value;
+            if (isNaN(bet) || bet <= 0) {
+                alert('A valid bet amount is required.');
+                return;
+            }
+            sendMessage('SUBMIT_GAMBLE', { bet, choice });
+        });
+
+        document.getElementById('submit-quiz-btn').addEventListener('click', () => {
+            const value = document.getElementById('quiz-selection').value;
+            if (value === '') {
+                alert('Selection (Answer Index) is required.');
+                return;
+            }
+            const selection = parseInt(value, 10);
+            if (isNaN(selection)) {
+                alert('Invalid number for Answer Index.');
+                return;
+            }
+            sendMessage('SUBMIT_QUIZ', { selection: selection });
+        });
+
+    </script>
+</body>
+</html>
