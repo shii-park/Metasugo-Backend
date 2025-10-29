@@ -8,55 +8,47 @@ import (
 )
 
 type Effect interface {
-	Apply(player *Player, game *Game, choice any) error
-	RequiresUserInput() bool
-	GetOptions(tile *Tile) any
+	Apply(player *Player, game *Game, choice any) error // 効果の適用
+	RequiresUserInput() bool                            // ユーザからの入力が必要かどうか
+	GetOptions(tile *Tile) any                          // ユーザの入力の選択肢
 }
 
-var QuizJSONPath = "./quizzes.json"
-
-// グローバル変数にキャッシュしておく
-var quizzes []Quiz
-
+// 収入マス
 type ProfitEffect struct {
 	Amount int `json:"amount"`
 }
 
+func (e ProfitEffect) RequiresUserInput() bool { return false }
+
+func (e ProfitEffect) GetOptions(tile *Tile) any { return nil }
+
+// 指定されたお金分増やす
+func (e ProfitEffect) Apply(p *Player, g *Game, choice any) error {
+	err := p.Profit(e.Amount)
+	return err
+}
+
+// 支出マス
 type LossEffect struct {
 	Amount int `json:"amount"`
 }
 
-type QuizEffect struct {
-	QuizID int `json:"quiz_id"`
-	Amount int `json:"amount"`
+func (e LossEffect) RequiresUserInput() bool { return false }
+
+func (e LossEffect) GetOptions(tile *Tile) any { return nil }
+
+// 指定されたお金分減らす
+func (e LossEffect) Apply(p *Player, g *Game, choice any) error {
+	err := p.Loss(e.Amount)
+	return err
 }
 
-// TODO 一時的な型の実装をしている。　また変更するかも
-type BranchEffect struct {
-	ChoseID int `json:"chose_id"`
-}
+// クイズマス
 
-type OverallEffect struct {
-	ProfitAmount int `json:"profit_amount"`
-	LossAmount   int `json:"loss_amount"`
-}
+// クイズの問題集のパス
+var QuizJSONPath = "./quizzes.json"
 
-type NeighborEffect struct {
-	ProfitAmount int `json:"profit_amount"`
-	LossAmount   int `json:"loss_amount"`
-}
-
-type RequireEffect struct {
-	RequireValue int `json:"require_value"`
-	Amount       int `json:"amount"`
-}
-
-type GambleEffect struct {
-}
-
-type NoEffect struct {
-}
-
+// クイズ問題の構造体
 type Quiz struct {
 	ID                int      `json:"id"`
 	Question          string   `json:"question"`
@@ -65,32 +57,19 @@ type Quiz struct {
 	AnswerDescription string   `json:"answer_description"`
 }
 
-type GoalEffect struct {
+// グローバル変数にキャッシュしておく
+var quizzes []Quiz
+
+// クイズタイルに必要なオプション
+type QuizEffect struct {
+	QuizID int `json:"quiz_id"`
+	Amount int `json:"amount"`
 }
 
-// お金を増やす効果
-func (e ProfitEffect) RequiresUserInput() bool { return false }
-
-func (e ProfitEffect) GetOptions(tile *Tile) any { return nil }
-
-func (e ProfitEffect) Apply(p *Player, g *Game, choice any) error {
-	err := p.Profit(e.Amount)
-	return err
-}
-
-// お金を減らす効果
-func (e LossEffect) RequiresUserInput() bool { return false }
-
-func (e LossEffect) GetOptions(tile *Tile) any { return nil }
-
-func (e LossEffect) Apply(p *Player, g *Game, choice any) error {
-	err := p.Loss(e.Amount)
-	return err
-}
-
-// クイズ効果
+// クイズマスにユーザからの入力が必要かどうか
 func (e QuizEffect) RequiresUserInput() bool { return true }
 
+// クイズIDからクイズを取ってきて、そのクイズを返す
 func (e QuizEffect) GetOptions(tile *Tile) any {
 	for _, quiz := range quizzes {
 		if quiz.ID == e.QuizID {
@@ -100,7 +79,9 @@ func (e QuizEffect) GetOptions(tile *Tile) any {
 	return nil
 }
 
+// クイズの実際の処理
 func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
+	// テスト時にfloat64型でもらうため、int型に変換している
 	var selectedOptionIndex int
 	switch v := choice.(type) {
 	case int:
@@ -132,9 +113,14 @@ func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
 	return nil
 }
 
-// 分かれ道
+// 分かれ道マス
+type BranchEffect struct {
+}
+
+// 分かれ道にユーザからの入力が必要かどうか
 func (e BranchEffect) RequiresUserInput() bool { return true }
 
+// ユーザの選択肢。次のマスを取得して、それを戻り値にしている。
 func (e BranchEffect) GetOptions(tile *Tile) any {
 	options := make([]int, len(tile.nexts))
 	for i, nextTile := range tile.nexts {
@@ -143,6 +129,7 @@ func (e BranchEffect) GetOptions(tile *Tile) any {
 	return options
 }
 
+// 選ばれたマスの方へ進めている。
 func (e BranchEffect) Apply(p *Player, g *Game, choice any) error {
 	var chosenTileID int
 	// float64 と int の両方の型に対応
@@ -180,15 +167,22 @@ func (e BranchEffect) Apply(p *Player, g *Game, choice any) error {
 }
 
 // 全体効果
+type OverallEffect struct {
+	ProfitAmount int `json:"profit_amount"`
+	LossAmount   int `json:"loss_amount"`
+}
+
 func (e OverallEffect) RequiresUserInput() bool { return false }
 
 func (e OverallEffect) GetOptions(tile *Tile) any { return nil }
 
+// 　全員にお金を配るもしくはお金をもらう
 func (e OverallEffect) Apply(p *Player, g *Game, choice any) error {
-	targetPlayers := g.GetAllPlayers()
+	allPlayers := g.GetAllPlayers()
 
-	otherPlayers := make([]*Player, 0, len(targetPlayers)-1)
-	for _, player := range targetPlayers {
+	//自分以外のプレイヤーを取得する
+	otherPlayers := make([]*Player, 0, len(allPlayers)-1)
+	for _, player := range allPlayers {
 		if player.id != p.id {
 			otherPlayers = append(otherPlayers, player)
 		}
@@ -211,10 +205,16 @@ func (e OverallEffect) Apply(p *Player, g *Game, choice any) error {
 }
 
 // 隣人効果
+type NeighborEffect struct {
+	ProfitAmount int `json:"profit_amount"`
+	LossAmount   int `json:"loss_amount"`
+}
+
 func (e NeighborEffect) RequiresUserInput() bool { return false }
 
 func (e NeighborEffect) GetOptions(tile *Tile) any { return nil }
 
+// 周辺(前後1マス)のプレイヤーからお金をもらうもしくは配る
 func (e NeighborEffect) Apply(p *Player, g *Game, choice any) error {
 	targetPlayers := g.GetNeighbors(p)
 	if e.ProfitAmount > 0 {
@@ -234,6 +234,11 @@ func (e NeighborEffect) Apply(p *Player, g *Game, choice any) error {
 }
 
 // 条件分岐
+type RequireEffect struct {
+	RequireValue int `json:"require_value"`
+	Amount       int `json:"amount"`
+}
+
 func (e RequireEffect) RequiresUserInput() bool { return false }
 
 func (e RequireEffect) GetOptions(tile *Tile) any { return nil }
@@ -244,10 +249,15 @@ func (e RequireEffect) Apply(p *Player, g *Game, choice any) error {
 }
 
 // ギャンブル効果
+type GambleEffect struct {
+}
+
 func (e GambleEffect) RequiresUserInput() bool { return true }
 
 func (e GambleEffect) GetOptions(tile *Tile) any { return nil }
 
+// ギャンブルの入力の有効か検証している
+// 本当はここにギャンブルの処理を書いて、returnでギャンブル結果を返したほうが良いのだろうが、時間がなかったので呼び出し先でギャンブルの判定を行っている。 REF必要。
 func (e GambleEffect) Apply(p *Player, g *Game, choice any) error {
 	userInput, ok := choice.(map[string]interface{})
 	if !ok {
@@ -271,13 +281,20 @@ func (e GambleEffect) Apply(p *Player, g *Game, choice any) error {
 	return nil
 }
 
-// 効果なし
+// 効果なしマス
+type NoEffect struct {
+}
+
 func (e NoEffect) RequiresUserInput() bool { return false }
 
 func (e NoEffect) GetOptions(tile *Tile) any { return nil }
 
 func (e NoEffect) Apply(p *Player, g *Game, choice any) error {
 	return nil
+}
+
+// ゴールマス
+type GoalEffect struct {
 }
 
 func (e GoalEffect) RequiresUserInput() bool { return false }
