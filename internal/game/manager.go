@@ -113,6 +113,11 @@ func (gm *GameManager) UnregisterPlayerClient(playerID string, c *hub.Client) er
 	}
 	// GameManagerからプレイヤーを削除
 	delete(gm.playerClients, playerID)
+
+	// Hubにクライアントの登録解除を通知
+	// これにより、Hubはクライアントの接続を閉じ、リソースを解放します
+	c.Hub.Unregister(c)
+
 	return nil
 
 }
