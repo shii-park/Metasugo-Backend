@@ -35,5 +35,7 @@ func SetupRoutes(router *gin.Engine, sg *sugoroku.Game) {
 		authRequired.GET("/ws", wsHandler.HandleWebSocket(gm))
 		// ランキングのルーティング
 		authRequired.GET("/ranking", rankingHandler.GetRanking)
+		// タイルのルーティング
+		authRequired.GET("/tiles", TilesHandler)
 	}
 }
