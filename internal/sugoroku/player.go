@@ -6,12 +6,20 @@ import (
 	"sync"
 )
 
+const (
+	JobProfessor = "professor"
+	JobLecturer  = "lecturer"
+)
+
+
 type Player struct {
-	position  *Tile
-	id        string
-	money     int
-	mu        sync.Mutex
-	isMarried bool
+	position    *Tile
+	id          string
+	money       int
+	mu          sync.Mutex
+	isMarried   bool
+	HasChildren bool
+	Job         string
 }
 
 // プレイヤーのインスタンスを生成する
@@ -113,6 +121,21 @@ func (p *Player) GetMoney() int {
 	return p.money
 }
 
+// GetIsMarried はプレイヤーが結婚しているかどうかを返す
+func (p *Player) GetIsMarried() bool {
+	return p.isMarried
+}
+
+// GetHasChildren はプレイヤーに子供がいるかどうかを返す
+func (p *Player) GetHasChildren() bool {
+	return p.HasChildren
+}
+
+// GetJob はプレイヤーの職業を返す
+func (p *Player) GetJob() string {
+	return p.Job
+}
+
 // プレイヤーの位置を移動させるメソッド(テストに用いる)
 func (p *Player) SetPosition(tile *Tile) {
 	p.position = tile
@@ -121,4 +144,14 @@ func (p *Player) SetPosition(tile *Tile) {
 // プレイヤーを結婚させるメソッド
 func (p *Player) marry() {
 	p.isMarried = true
+}
+
+// プレイヤーに子供を授けるメソッド
+func (p *Player) haveChildren() {
+	p.HasChildren = true
+}
+
+// プレイヤーの職業を設定するメソッド
+func (p *Player) setJob(job string) {
+	p.Job = job
 }

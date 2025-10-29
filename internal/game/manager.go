@@ -42,6 +42,9 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	// 1. 移動前の状態を記録
 	initialPosition := player.GetPosition().GetID()
 	initialMoney := player.GetMoney()
+	initialIsMarried := player.GetIsMarried()
+	initialHasChildren := player.GetHasChildren()
+	initialJob := player.GetJob()
 
 	// 2. プレイヤーを移動させる
 	flag := player.Move(steps) //めんどくさくなったのでフラグで実装してる。Effect型で比較するなどもっといいやり方はあると思う
@@ -83,10 +86,25 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 		}
 	}
 
+	// 4. ステータスの変更を検知して通知
 	finalMoney := player.GetMoney()
-
 	if initialMoney != finalMoney {
 		gm.broadcastMoneyChanged(playerID, finalMoney)
+	}
+
+	finalIsMarried := player.GetIsMarried()
+	if initialIsMarried != finalIsMarried {
+		gm.broadcastPlayerStatusChanged(playerID, "isMarried", finalIsMarried)
+	}
+
+	finalHasChildren := player.GetHasChildren()
+	if initialHasChildren != finalHasChildren {
+		gm.broadcastPlayerStatusChanged(playerID, "hasChildren", finalHasChildren)
+	}
+
+	finalJob := player.GetJob()
+	if initialJob != finalJob {
+		gm.broadcastPlayerStatusChanged(playerID, "job", finalJob)
 	}
 
 	return nil

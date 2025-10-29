@@ -13,6 +13,10 @@ type Effect interface {
 	GetOptions(tile *Tile) any                          // ユーザの入力の選択肢
 }
 
+type effectWithType struct {
+	Type TileKind `json:"type"`
+}
+
 // 収入マス
 type ProfitEffect struct {
 	Amount int `json:"amount"`
@@ -252,6 +256,58 @@ func (e RequireEffect) Apply(p *Player, g *Game, choice any) error {
 type GambleEffect struct {
 }
 
+// ConditionalEffect はプレイヤーのステータスに基づいて異なる効果を適用します。
+
+type ConditionalEffect struct {
+	Condition   string          `json:"condition"`   // "isMarried", "hasChildren"
+	TrueEffect  json.RawMessage `json:"true_effect"` // 条件がtrueの場合の効果
+	FalseEffect json.RawMessage `json:"false_effect"`// 条件がfalseの場合の効果
+}
+
+func (e ConditionalEffect) RequiresUserInput() bool {
+	// TODO: 将来的に、内部のEffectがユーザー入力を要求する可能性を考慮し拡張する
+	return false
+}
+
+func (e ConditionalEffect) GetOptions(tile *Tile) any {
+	return nil
+}
+
+func (e ConditionalEffect) Apply(p *Player, g *Game, choice any) error {
+	var conditionMet bool
+	switch e.Condition {
+	case "isMarried":
+		conditionMet = p.isMarried
+	case "hasChildren":
+		conditionMet = p.HasChildren
+	case "isProfessor":
+		conditionMet = p.Job == JobProfessor
+	case "isLecturer":
+		conditionMet = p.Job == JobLecturer
+	default:
+		return fmt.Errorf("unknown condition: %s", e.Condition)
+	}
+
+	var effectJSON json.RawMessage
+	if conditionMet {
+		effectJSON = e.TrueEffect
+	} else {
+		effectJSON = e.FalseEffect
+	}
+
+	if effectJSON == nil || string(effectJSON) == "null" || string(effectJSON) == "{}" {
+		return nil // 適用する効果がない場合は何もしない
+	}
+
+	// effectJSONからEffectインスタンスを動的に生成して適用
+	effect, err := CreateEffectFromJSON(effectJSON)
+	if err != nil {
+		return err
+	}
+
+	return effect.Apply(p, g, choice)
+}
+
 func (e GambleEffect) RequiresUserInput() bool { return true }
 
 func (e GambleEffect) GetOptions(tile *Tile) any { return nil }
@@ -297,6 +353,36 @@ func (e NoEffect) Apply(p *Player, g *Game, choice any) error {
 type GoalEffect struct {
 }
 
+// SetStatusEffect はプレイヤーのステータス（属性）を変更する効果です。
+type SetStatusEffect struct {
+	Status string `json:"status"` // 変更するステータス名 ("isMarried", "hasChildren", "job")
+	Value  any    `json:"value"`  // 設定する値 (true, "professor" など)
+}
+
+func (e SetStatusEffect) RequiresUserInput() bool { return false }
+
+func (e SetStatusEffect) GetOptions(tile *Tile) any { return nil }
+
+func (e SetStatusEffect) Apply(p *Player, g *Game, choice any) error {
+	switch e.Status {
+	case "isMarried":
+		if val, ok := e.Value.(bool); ok && val {
+			p.marry()
+		}
+	case "hasChildren":
+		if val, ok := e.Value.(bool); ok && val {
+			p.haveChildren()
+		}
+	case "job":
+		if val, ok := e.Value.(string); ok {
+			p.setJob(val)
+		}
+	default:
+		return fmt.Errorf("unknown status to set: %s", e.Status)
+	}
+	return nil
+}
+
 func (e GoalEffect) RequiresUserInput() bool { return false }
 
 func (e GoalEffect) GetOptions(tile *Tile) any { return nil }
@@ -304,6 +390,76 @@ func (e GoalEffect) GetOptions(tile *Tile) any { return nil }
 func (e GoalEffect) Apply(p *Player, g *Game, choice any) error {
 
 	return nil
+}
+
+func CreateEffectFromJSON(data json.RawMessage) (Effect, error) {
+	var ewt effectWithType
+	if err := json.Unmarshal(data, &ewt); err != nil {
+		return nil, fmt.Errorf("effect type unmarshal error: %w", err)
+	}
+
+	switch ewt.Type {
+	case profit:
+		var profitEffect ProfitEffect
+		if err := json.Unmarshal(data, &profitEffect); err != nil {
+			return nil, fmt.Errorf("ProfitEffect unmarshal error: %w", err)
+		}
+		return profitEffect, nil
+	case loss:
+		var lossEffect LossEffect
+		if err := json.Unmarshal(data, &lossEffect); err != nil {
+			return nil, fmt.Errorf("LossEffect unmarshal error: %w", err)
+		}
+		return lossEffect, nil
+	case quiz:
+		var quizEffect QuizEffect
+		if err := json.Unmarshal(data, &quizEffect); err != nil {
+			return nil, fmt.Errorf("QuizEffect unmarshal error: %w", err)
+		}
+		return quizEffect, nil
+	case branch:
+		var branchEffect BranchEffect
+		if err := json.Unmarshal(data, &branchEffect); err != nil {
+			return nil, fmt.Errorf("BranchEffect unmarshal error: %w", err)
+		}
+		return branchEffect, nil
+	case overall:
+		var overallEffect OverallEffect
+		if err := json.Unmarshal(data, &overallEffect); err != nil {
+			return nil, fmt.Errorf("OverallEffect unmarshal error: %w", err)
+		}
+		return overallEffect, nil
+	case neighbor:
+		var neighborEffect NeighborEffect
+		if err := json.Unmarshal(data, &neighborEffect); err != nil {
+			return nil, fmt.Errorf("NeighborEffect unmarshal error: %w", err)
+		}
+		return neighborEffect, nil
+	case require:
+		var requireEffect RequireEffect
+		if err := json.Unmarshal(data, &requireEffect); err != nil {
+			return nil, fmt.Errorf("RequireEffect unmarshal error: %w", err)
+		}
+		return requireEffect, nil
+	case gamble:
+		return GambleEffect{}, nil
+	case goal:
+		return GoalEffect{}, nil
+	case conditional:
+		var conditionalEffect ConditionalEffect
+		if err := json.Unmarshal(data, &conditionalEffect); err != nil {
+			return nil, fmt.Errorf("ConditionalEffect unmarshal error: %w", err)
+		}
+		return conditionalEffect, nil
+	case setStatus:
+		var setStatusEffect SetStatusEffect
+		if err := json.Unmarshal(data, &setStatusEffect); err != nil {
+			return nil, fmt.Errorf("SetStatusEffect unmarshal error: %w", err)
+		}
+		return setStatusEffect, nil
+	default:
+		return NoEffect{}, nil
+	}
 }
 
 func InitQuiz() error {
