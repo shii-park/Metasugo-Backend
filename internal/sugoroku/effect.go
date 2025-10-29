@@ -277,13 +277,13 @@ func (e ConditionalEffect) Apply(p *Player, g *Game, choice any) error {
 	var conditionMet bool
 	switch e.Condition {
 	case "isMarried":
-		conditionMet = p.isMarried
+		conditionMet = p.GetIsMarried()
 	case "hasChildren":
-		conditionMet = p.HasChildren
+		conditionMet = p.GetHasChildren()
 	case "isProfessor":
-		conditionMet = p.Job == JobProfessor
+		conditionMet = p.GetJob() == JobProfessor
 	case "isLecturer":
-		conditionMet = p.Job == JobLecturer
+		conditionMet = p.GetJob() == JobLecturer
 	default:
 		return fmt.Errorf("unknown condition: %s", e.Condition)
 	}
