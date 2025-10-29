@@ -94,3 +94,15 @@ func (gm *GameManager) broadcastPlayerFinished(userID string, money int) {
 		},
 	})
 }
+
+// broadcastPlayerStatusChanged はプレイヤーステータス変更イベントを全クライアントに通知
+func (gm *GameManager) broadcastPlayerStatusChanged(userID string, status string, value any) {
+	gm.hub.Broadcast(map[string]interface{}{
+		"type": "PLAYER_STATUS_CHANGED",
+		"payload": map[string]interface{}{
+			"userID": userID,
+			"status": status,
+			"value":  value,
+		},
+	})
+}

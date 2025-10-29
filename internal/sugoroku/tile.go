@@ -16,6 +16,8 @@ const (
 	require  TileKind = "require"
 	gamble   TileKind = "gamble"
 	goal     TileKind = "goal"
+	conditional TileKind = "conditional"
+	setStatus TileKind = "setStatus"
 )
 
 const TilesJSONPath = "./tiles.json"
@@ -41,9 +43,7 @@ type TileJSON struct {
 	NextIDs []int           `json:"next_ids"`
 }
 
-type effectWithType struct {
-	Type TileKind `json:"type"`
-}
+
 
 //                                            __                                      __
 //                                           |  \                                    |  \
@@ -105,71 +105,17 @@ func InitTilesFromPath(path string) (map[int]*Tile, error) {
 	// タイルを生成(この時点ではタイル同士はつながっていない)
 	for _, tj := range tilesJSON {
 		var effect Effect
+		var err error
 		// Effectによるマスインスタンス生成の分岐
 		if len(tj.Effect) > 0 && string(tj.Effect) != "null" && string(tj.Effect) != "{}" {
-			var ewt effectWithType
-			if err := json.Unmarshal(tj.Effect, &ewt); err != nil {
-				return nil, fmt.Errorf("effect type unmarshal error for tile id %d: %w", tj.ID, err)
-			}
-			if ewt.Type == "" {
-				return nil, fmt.Errorf("effect type is missing for tile id %d", tj.ID)
-			}
-			switch ewt.Type {
-			case profit:
-				var profitEffect ProfitEffect
-				if err := json.Unmarshal(tj.Effect, &profitEffect); err != nil {
-					return nil, fmt.Errorf("ProfitEffect unmarshal error for tile id %d: %w", tj.ID, err)
-				}
-				effect = profitEffect
-			case loss:
-				var lossEffect LossEffect
-				if err := json.Unmarshal(tj.Effect, &lossEffect); err != nil {
-					return nil, fmt.Errorf("LossEffect unmarshal error for tile id %d: %w", tj.ID, err)
-				}
-				effect = lossEffect
-			case quiz:
-				var quizEffect QuizEffect
-				if err := json.Unmarshal(tj.Effect, &quizEffect); err != nil {
-					return nil, fmt.Errorf("QuizEffect unmarshal error for tile id %d: %w", tj.ID, err)
-				}
-				effect = quizEffect
-			case branch:
-				var branchEffect BranchEffect
-				if err := json.Unmarshal(tj.Effect, &branchEffect); err != nil {
-					return nil, fmt.Errorf("BranchEffect unmarshal error for tile id %d: %w", tj.ID, err)
-				}
-				effect = branchEffect
-			case overall:
-				var overallEffect OverallEffect
-				if err := json.Unmarshal(tj.Effect, &overallEffect); err != nil {
-					return nil, fmt.Errorf("OverallEffect unmarshal error for tile id %d: %w", tj.ID, err)
-				}
-				effect = overallEffect
-			case neighbor:
-				var neighborEffect NeighborEffect
-				if err := json.Unmarshal(tj.Effect, &neighborEffect); err != nil {
-					return nil, fmt.Errorf("NeighborEffect unmarshal error for tile id %d: %w", tj.ID, err)
-				}
-				effect = neighborEffect
-			case require:
-				var requireEffect RequireEffect
-				if err := json.Unmarshal(tj.Effect, &requireEffect); err != nil {
-					return nil, fmt.Errorf("RequireEffect unmarshal error for tile id %d: %w", tj.ID, err)
-				}
-				effect = requireEffect
-			case gamble:
-				effect = GambleEffect{}
-			case goal:
-				effect = GoalEffect{}
-			default:
-				effect = nil
+			effect, err = CreateEffectFromJSON(tj.Effect)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create effect for tile id %d: %w", tj.ID, err)
 			}
 		} else {
 			effect = NoEffect{}
 		}
-		if effect == nil {
-			effect = NoEffect{}
-		}
+
 		tile := NewTile(nil, nil, tj.Kind, tj.ID, effect, tj.Detail)
 		tileMap[tile.id] = tile
 	}
