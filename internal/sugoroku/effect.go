@@ -313,7 +313,7 @@ func (e GambleEffect) RequiresUserInput() bool { return true }
 func (e GambleEffect) GetOptions(tile *Tile) any { return nil }
 
 // ギャンブルの入力の有効か検証している
-// 本当はここにギャンブルの処理を書いて、returnでギャンブル結果を返したほうが良いのだろうが、時間がなかったので呼び出し先でギャンブルの判定を行っている。 REF必要。
+// 本当はここにギャンブルの処理を書いて、returnでギャンブル結果を返したほうが良いのだろうが、時間がなかったので呼び出し先でギャンブルの判定を行っている。TODO: リファクタリングが必要
 func (e GambleEffect) Apply(p *Player, g *Game, choice any) error {
 	userInput, ok := choice.(map[string]interface{})
 	if !ok {
