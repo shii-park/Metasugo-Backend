@@ -73,3 +73,25 @@ func TestQuizEffect(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, initialMoney-effect.Amount, player.GetMoney())
 }
+
+func TestChildBonusEffect(t *testing.T) {
+	game := NewGameWithTilesForTest("../../tiles.json")
+	player, _ := game.AddPlayer("test_player")
+	player.money = 0      // Reset money for test
+	player.Children = 2 // Set number of children
+
+	// Test with profit
+	profitEffect := ChildBonusEffect{ProfitAmountPerChild: 100}
+	initialMoney := player.GetMoney()
+	err := profitEffect.Apply(player, game, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, initialMoney+(2*100), player.GetMoney())
+
+	// Test with loss
+	player.money = 0 // Reset money for test
+	lossEffect := ChildBonusEffect{LossAmountPerChild: 50}
+	initialMoney = player.GetMoney()
+	err = lossEffect.Apply(player, game, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, initialMoney-(2*50), player.GetMoney())
+}
