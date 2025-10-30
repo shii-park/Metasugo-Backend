@@ -11,7 +11,6 @@ const (
 	JobLecturer  = "lecturer"
 )
 
-
 type Player struct {
 	position    *Tile
 	id          string
@@ -28,6 +27,7 @@ func NewPlayer(id string, position *Tile) *Player {
 		position:  position,
 		id:        id,
 		isMarried: false,
+		money:     1000000,
 	}
 }
 
