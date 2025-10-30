@@ -60,14 +60,16 @@ func TestQuizEffect(t *testing.T) {
 	assert.Equal(t, expectedOptions, quiz.Options)
 
 	// Test Apply with correct answer
+	player.money = 0 // Reset money for test
 	initialMoney := player.GetMoney()
 	err := effect.Apply(player, game, 1) // Correct answer index is 1
 	assert.NoError(t, err)
-	assert.Equal(t, initialMoney+10, player.GetMoney())
+	assert.Equal(t, initialMoney+effect.Amount, player.GetMoney())
 
-	// Test Apply with incorrect answer (no penalty)
+	// Test Apply with incorrect answer
+	player.money = 0 // Reset money for test
 	initialMoney = player.GetMoney()
 	err = effect.Apply(player, game, 2) // Incorrect answer
 	assert.NoError(t, err)
-	assert.Equal(t, initialMoney, player.GetMoney())
+	assert.Equal(t, initialMoney-effect.Amount, player.GetMoney())
 }

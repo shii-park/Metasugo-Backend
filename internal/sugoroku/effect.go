@@ -274,8 +274,8 @@ func (e ConditionalEffect) Apply(p *Player, g *Game, choice any) error {
 	switch e.Condition {
 	case "isMarried":
 		conditionMet = p.GetIsMarried()
-	case "hasChildren":
-		conditionMet = p.GetHasChildren()
+	case "children":
+		conditionMet = p.GetChildren() > 0
 	case "isProfessor":
 		conditionMet = p.GetJob() == JobProfessor
 	case "isLecturer":
@@ -365,9 +365,9 @@ func (e SetStatusEffect) Apply(p *Player, g *Game, choice any) error {
 		if val, ok := e.Value.(bool); ok && val {
 			p.marry()
 		}
-	case "hasChildren":
-		if val, ok := e.Value.(bool); ok && val {
-			p.haveChildren()
+	case "children":
+		if val, ok := e.Value.(float64); ok {
+			p.changeChildren(int(val))
 		}
 	case "job":
 		if val, ok := e.Value.(string); ok {
@@ -392,6 +392,10 @@ func CreateEffectFromJSON(data json.RawMessage) (Effect, error) {
 	var ewt effectWithType
 	if err := json.Unmarshal(data, &ewt); err != nil {
 		return nil, fmt.Errorf("effect type unmarshal error: %w", err)
+	}
+
+	if ewt.Type == "" {
+		return nil, errors.New("effect type is missing")
 	}
 
 	switch ewt.Type {
