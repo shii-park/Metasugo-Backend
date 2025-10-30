@@ -194,14 +194,12 @@ func (e OverallEffect) Apply(p *Player, g *Game, choice any) error {
 
 	if e.ProfitAmount > 0 {
 		// 全体にお金をもらう
-		p.Profit(e.ProfitAmount)
-		amount := DistributeMoney(otherPlayers, e.ProfitAmount)
-		LossForTargetPlayers(otherPlayers, amount)
+		p.Profit(len(otherPlayers) * e.ProfitAmount)
+		LossForTargetPlayers(otherPlayers, e.ProfitAmount)
 	} else if e.LossAmount > 0 {
 		// 全員にお金を配る
-		p.Loss(e.LossAmount)
-		amount := DistributeMoney(otherPlayers, e.LossAmount)
-		ProfitForTargetPlayers(otherPlayers, amount)
+		p.Loss(len(otherPlayers) * e.LossAmount)
+		ProfitForTargetPlayers(otherPlayers, e.LossAmount)
 	} else {
 		return errors.New("invalid amount for overall effect")
 	}
@@ -223,14 +221,12 @@ func (e NeighborEffect) Apply(p *Player, g *Game, choice any) error {
 	targetPlayers := g.GetNeighbors(p)
 	if e.ProfitAmount > 0 {
 		// 全体にお金をもらう
-		p.Profit(e.ProfitAmount)
-		amount := DistributeMoney(targetPlayers, e.ProfitAmount)
-		LossForTargetPlayers(targetPlayers, amount)
+		p.Profit(len(targetPlayers) * e.ProfitAmount)
+		LossForTargetPlayers(targetPlayers, e.ProfitAmount)
 	} else if e.LossAmount > 0 {
 		// 全員にお金を配る
-		p.Loss(e.LossAmount)
-		amount := DistributeMoney(targetPlayers, e.LossAmount)
-		ProfitForTargetPlayers(targetPlayers, amount)
+		p.Loss(len(targetPlayers) * e.LossAmount)
+		ProfitForTargetPlayers(targetPlayers, e.LossAmount)
 	} else {
 		return errors.New("invalid amount for overall effect")
 	}
@@ -259,9 +255,9 @@ type GambleEffect struct {
 // ConditionalEffect はプレイヤーのステータスに基づいて異なる効果を適用します。
 
 type ConditionalEffect struct {
-	Condition   string          `json:"condition"`   // "isMarried", "hasChildren"
-	TrueEffect  json.RawMessage `json:"true_effect"` // 条件がtrueの場合の効果
-	FalseEffect json.RawMessage `json:"false_effect"`// 条件がfalseの場合の効果
+	Condition   string          `json:"condition"`    // "isMarried", "hasChildren"
+	TrueEffect  json.RawMessage `json:"true_effect"`  // 条件がtrueの場合の効果
+	FalseEffect json.RawMessage `json:"false_effect"` // 条件がfalseの場合の効果
 }
 
 func (e ConditionalEffect) RequiresUserInput() bool {
