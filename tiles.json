@@ -69,6 +69,22 @@
     "detail": "クイズマス",
     "effect": { "type": "quiz", "quiz_id": 1, "amount": 10 },
     "prev_ids": [8],
+    "next_ids": [10]
+  },
+  {
+    "id": 10,
+    "kind": "gamble",
+    "detail": "ギャンブルマス",
+    "effect": { "type": "gamble" },
+    "prev_ids": [9],
+    "next_ids": [11]
+  },
+  {
+    "id": 11,
+    "kind": "goal",
+    "detail": "ゴール",
+    "effect": {"type": "goal"},
+    "prev_ids": [10],
     "next_ids": []
   }
 ]
