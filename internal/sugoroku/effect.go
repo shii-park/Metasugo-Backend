@@ -484,7 +484,7 @@ func CreateEffectFromJSON(data json.RawMessage) (Effect, error) {
 			return nil, fmt.Errorf("SetStatusEffect unmarshal error: %w", err)
 		}
 		return setStatusEffect, nil
-	case "childBonus":
+	case childBonus:
 		var childBonusEffect ChildBonusEffect
 		if err := json.Unmarshal(data, &childBonusEffect); err != nil {
 			return nil, fmt.Errorf("ChildBonusEffect unmarshal error: %w", err)
