@@ -9,6 +9,8 @@ import (
 const (
 	JobProfessor = "professor"
 	JobLecturer  = "lecturer"
+
+	initialMoney = 1000000
 )
 
 type Player struct {
@@ -27,7 +29,7 @@ func NewPlayer(id string, position *Tile) *Player {
 		position:  position,
 		id:        id,
 		isMarried: false,
-		money:     1000000,
+		money:     initialMoney,
 	}
 }
 
