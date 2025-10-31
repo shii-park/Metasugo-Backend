@@ -274,8 +274,8 @@ func (e ConditionalEffect) Apply(p *Player, g *Game, choice any) error {
 	switch e.Condition {
 	case "isMarried":
 		conditionMet = p.GetIsMarried()
-	case "hasChildren":
-		conditionMet = p.GetHasChildren()
+	case "children":
+		conditionMet = p.GetChildren() > 0
 	case "isProfessor":
 		conditionMet = p.GetJob() == JobProfessor
 	case "isLecturer":
@@ -365,9 +365,9 @@ func (e SetStatusEffect) Apply(p *Player, g *Game, choice any) error {
 		if val, ok := e.Value.(bool); ok && val {
 			p.marry()
 		}
-	case "hasChildren":
-		if val, ok := e.Value.(bool); ok && val {
-			p.haveChildren()
+	case "children":
+		if val, ok := e.Value.(float64); ok {
+			p.changeChildren(int(val))
 		}
 	case "job":
 		if val, ok := e.Value.(string); ok {
@@ -388,10 +388,41 @@ func (e GoalEffect) Apply(p *Player, g *Game, choice any) error {
 	return nil
 }
 
+// 子供の人数に応じて効果を適用するマス
+type ChildBonusEffect struct {
+	ProfitAmountPerChild int `json:"profit_amount_per_child,omitempty"`
+	LossAmountPerChild   int `json:"loss_amount_per_child,omitempty"`
+}
+
+func (e ChildBonusEffect) RequiresUserInput() bool { return false }
+
+func (e ChildBonusEffect) GetOptions(tile *Tile) any { return nil }
+
+func (e ChildBonusEffect) Apply(p *Player, g *Game, choice any) error {
+	children := p.GetChildren()
+	if children == 0 {
+		return nil
+	}
+
+	if e.ProfitAmountPerChild > 0 {
+		amount := children * e.ProfitAmountPerChild
+		return p.Profit(amount)
+	} else if e.LossAmountPerChild > 0 {
+		amount := children * e.LossAmountPerChild
+		return p.Loss(amount)
+	}
+
+	return nil
+}
+
 func CreateEffectFromJSON(data json.RawMessage) (Effect, error) {
 	var ewt effectWithType
 	if err := json.Unmarshal(data, &ewt); err != nil {
 		return nil, fmt.Errorf("effect type unmarshal error: %w", err)
+	}
+
+	if ewt.Type == "" {
+		return nil, errors.New("effect type is missing")
 	}
 
 	switch ewt.Type {
@@ -453,6 +484,12 @@ func CreateEffectFromJSON(data json.RawMessage) (Effect, error) {
 			return nil, fmt.Errorf("SetStatusEffect unmarshal error: %w", err)
 		}
 		return setStatusEffect, nil
+	case childBonus:
+		var childBonusEffect ChildBonusEffect
+		if err := json.Unmarshal(data, &childBonusEffect); err != nil {
+			return nil, fmt.Errorf("ChildBonusEffect unmarshal error: %w", err)
+		}
+		return childBonusEffect, nil
 	default:
 		return NoEffect{}, nil
 	}
