@@ -8,19 +8,19 @@ import (
 	"github.com/shii-park/Metasugo-Backend/internal/service"
 )
 
-type MaxAmtHandler struct {
+type BestScoreHandler struct {
 	firestore *firestore.Client
 }
 
-func NewMaxAmtHandler() (*MaxAmtHandler, error) {
+func NewBestScoreHandler() (*BestScoreHandler, error) {
 	fs, err := service.GetFirestoreClient()
 	if err != nil {
 		return nil, err
 	}
-	return &MaxAmtHandler{firestore: fs}, nil
+	return &BestScoreHandler{firestore: fs}, nil
 }
 
-func (h *MaxAmtHandler) GetMaxAmt(c *gin.Context) {
+func (h *BestScoreHandler) GetBestScore(c *gin.Context) {
 	ctx := c.Request.Context()
 	userID := c.GetString("firebase_uid")
 
