@@ -17,9 +17,9 @@ func main() {
 	if err != nil {
 		log.Println(".envファイルの読み込みに失敗: ", err)
 	}
-	credJSON := os.Getenv("FIREBASE_CREDENTIALS_JSON")
-	if credJSON == "" {
-		log.Fatal("環境変数 FIREBASE_CREDENTIALS_JSON が設定されていません")
+	credFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
+	if credFile == "" {
+		log.Fatal("環境変数GOOGLE_APPLICATION_CREDENTIALSが設定されていません")
 	}
 
 	router := gin.Default()
