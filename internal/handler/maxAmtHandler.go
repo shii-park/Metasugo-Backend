@@ -25,7 +25,7 @@ func (h *MaxAmtHandler) GetMaxAmt(c *gin.Context) {
 	userID := c.GetString("firebase_uid")
 	println(userID)
 
-	docRef := h.firestore.Collection("users").Doc(userID)
+	docRef := h.firestore.Collection("playerClearData").Doc(userID)
 	docSnap, err := docRef.Get(ctx)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "ドキュメント取得に失敗しました"})
