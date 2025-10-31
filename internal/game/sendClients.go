@@ -1,7 +1,7 @@
 package game
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
 )
@@ -69,7 +69,10 @@ func (gm *GameManager) sendGambleResult(playerID string, payload map[string]inte
 		"payload": payload,
 	}
 	if err := gm.hub.SendToPlayer(playerID, event); err != nil {
-		log.Printf("error: failed to send gamble result to player %s: %v", playerID, err)
+		log.WithFields(log.Fields{
+			"error":    err,
+			"playerID": playerID,
+		}).Error("failed to send gamble result to player")
 	}
 }
 
