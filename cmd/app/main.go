@@ -1,61 +1,61 @@
 package main
 
 import (
-	"log"
 	"os"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 
-	"github.com/shii-park/Metasugo-Backend/internal/game"
 	"github.com/shii-park/Metasugo-Backend/internal/handler"
-	"github.com/shii-park/Metasugo-Backend/internal/hub"
+	"github.com/shii-park/Metasugo-Backend/internal/logger"
 	"github.com/shii-park/Metasugo-Backend/internal/middleware"
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
 )
 
 func main() {
+	logger.Init()
+
 	err := godotenv.Load()
 	if err != nil {
-		log.Println(".envファイルの読み込みに失敗: ", err)
+		log.Warn(".envファイルの読み込みに失敗: ", err)
 	}
+
 	credFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	if credFile == "" {
-		log.Fatal("環境変数GOOGLE_APPLICATION_CREDENTIALSが設定されていません")
+		log.Fatal("環境変数 GOOGLE_APPLICATION_CREDENTIALS が設定されていません")
 	}
-	// tilesFile := os.Getenv("TILES_JSON_PATH")
-	// if tilesFile == "" {
-	// 	log.Fatal("環境変数TILES_JSON_PATHが設定されていません")
-	// }
 
-	router := gin.Default()
+
+	
+	
+	router := gin.New()
+	router.Use(gin.Logger())
+	router.Use(middleware.Recovery())
+	// CORS 設定
+	router.Use(cors.New(cors.Config{
+		AllowOriginFunc: func(origin string) bool {
+			return true // すべてのオリジンを許可
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	err = middleware.InitFirebase()
 	if err != nil {
 		log.Fatal("Firebaseの初期化に失敗:", err)
 	}
 
-	//ゲームの初期化
-	h := hub.NewHub()
-	log.Println("=== Hub created ===")
-	go h.Run()
-	g := sugoroku.NewGame() // ハンドラができた際に、gameにAddplayerができるようになる
-	log.Println("=== Game created ===")
-	gm := game.NewGameManager(g, h)
-	log.Println("=== GameManager created ===")
+	// ゲームの初期化
+	g := sugoroku.NewGame()
+	log.Info("=== Game created ===")
 
-	wsHandler := handler.NewWebSocketHandler(h)
+	// ルーティング設定
+	handler.SetupRoutes(router, g)
 
-	/**********エンドポイント**********/
-	ranking := router.Group("/ranking")
-	{
-		ranking.POST("/score")        //スコア追加
-		ranking.GET("/top")           //トップランキング取得
-		ranking.GET("/all")           //全体ランキング取得
-		ranking.GET("/user/:user_id") //特定ユーザのスコア取得
-		ranking.GET("/me")            //自分のランクを取得
-	}
-	router.GET("/ws/connection", wsHandler.HandleWebSocket(gm)) // テスト用にmiddleware.AuthToken()をコメントアウト
-	/**********エンドポイントここまで**********/
-
-	router.Run()
+	router.Run() // デフォルトで :8080
 }

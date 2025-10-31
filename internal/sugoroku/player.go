@@ -6,35 +6,50 @@ import (
 	"sync"
 )
 
+const (
+	JobProfessor = "professor"
+	JobLecturer  = "lecturer"
+
+	initialMoney = 1000000
+)
+
 type Player struct {
-	position *Tile
-	id       string
-	money    int
-	mu       sync.Mutex
+	position    *Tile
+	id          string
+	money       int
+	mu          sync.Mutex
+	isMarried   bool
+	Children    int
+	Job         string
 }
 
 // プレイヤーのインスタンスを生成する
 func NewPlayer(id string, position *Tile) *Player {
 	return &Player{
-		position: position,
-		id:       id,
+		position:  position,
+		id:        id,
+		isMarried: false,
+		Children:  0,
+		money:     initialMoney,
 	}
 }
 
-// TODO: エラー文の追加、一時的にnextsの1こ目のマスに進むようになっている、ゴールの処理を書かなければならない
+// TODO: nextsの1こ目のマスに進むようになっている、ゴールの処理を書かなければならない
 func (p *Player) moveNextTile() {
 	if len(p.position.nexts) > 0 {
 		p.position = p.position.nexts[0]
 	}
 }
 
-// TODO: エラー文の追加、一時的にprevsの1こ目のマスに進むようになっている
+// TODO: prevsの1こ目のマスに進むようになっている
 func (p *Player) movePrevTile() {
 	if len(p.position.prevs) > 0 {
 		p.position = p.position.prevs[0]
 	}
+
 }
 
+// プレイヤーを指定されたマス分移動させるメソッド
 func (p *Player) Move(steps int) string {
 	for i := 0; i < steps; i++ {
 		p.moveNextTile()
@@ -99,15 +114,52 @@ func (p *Player) GetID() string {
 	return p.id
 }
 
+// プレイヤーの現在地のマス情報を返すメソッド
 func (p *Player) GetPosition() *Tile {
 	return p.position
 }
 
+// プレイヤーの所持金を返すメソッド
 func (p *Player) GetMoney() int {
 	return p.money
 }
 
-// SetPosition is a method for testing purposes.
+// GetIsMarried はプレイヤーが結婚しているかどうかを返す
+func (p *Player) GetIsMarried() bool {
+	return p.isMarried
+}
+
+// GetChildren はプレイヤーに子供がいるかどうかを返す
+func (p *Player) GetChildren() int {
+	return p.Children
+}
+
+// GetJob はプレイヤーの職業を返す
+func (p *Player) GetJob() string {
+	return p.Job
+}
+
+// プレイヤーの位置を移動させるメソッド(テストに用いる)
 func (p *Player) SetPosition(tile *Tile) {
 	p.position = tile
+}
+
+// プレイヤーを結婚させるメソッド
+func (p *Player) marry() {
+	p.isMarried = true
+}
+
+// プレイヤーに子供を授けるメソッド
+func (p *Player) haveChild() {
+	p.Children++
+}
+
+// プレイヤーの子供の数を変更するメソッド
+func (p *Player) changeChildren(amount int) {
+	p.Children += amount
+}
+
+// プレイヤーの職業を設定するメソッド
+func (p *Player) setJob(job string) {
+	p.Job = job
 }

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メタバーすごろく WebSocket テストツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .panel-content {
+            padding: 20px;
+        }
+
+        /* 接続セクション */
+        .connection-section {
+            margin-bottom: 20px;
+        }
+
+        .connection-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .connection-section input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .connection-section input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .connection-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ステータス表示 */
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .status-connected {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-disconnected {
+            background: #f44336;
+            color: white;
+        }
+
+        /* コントロールセクション */
+        .controls-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .control-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+
+        .control-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .control-card h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .control-card p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .control-card label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .control-card input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .control-card input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-action:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ログセクション */
+        #log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 15px;
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+            border-radius: 5px;
+        }
+
+        .log-entry {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-left: 3px solid #667eea;
+            background: #252526;
+            border-radius: 3px;
+        }
+
+        .log-entry.sent {
+            border-left-color: #4caf50;
+        }
+
+        .log-entry.received {
+            border-left-color: #2196f3;
+        }
+
+        .log-entry.error {
+            border-left-color: #f44336;
+        }
+
+        .log-entry.system {
+            border-left-color: #ff9800;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .log-type {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .log-type.sent { color: #4caf50; }
+        .log-type.received { color: #2196f3; }
+        .log-type.error { color: #f44336; }
+        .log-type.system { color: #ff9800; }
+
+        .log-time {
+            color: #858585;
+            font-size: 12px;
+        }
+
+        .log-content {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .log-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        /* レスポンシブデザイン */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* スクロールバーのスタイル */
+        #log::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #log::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        #log::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 5px;
+        }
+
+        #log::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左パネル：接続とコントロール -->
+        <div class="panel">
+            <div class="panel-header">
+                🎮 メタバーすごろく WebSocket テスト
+            </div>
+            <div class="panel-content">
+                <!-- 接続セクション -->
+                <div class="connection-section">
+                    <div id="connection-status">
+                        <span class="status status-disconnected">未接続</span>
+                    </div>
+                    
+                    <label for="auth-token">🔑 Firebase ID Token:</label>
+                    <input type="text" id="auth-token" placeholder="Firebaseの認証トークンを入力してください">
+                    
+                    <label for="ws-url">🌐 WebSocket URL:</label>
+                    <input type="text" id="ws-url" value="ws://localhost:8080/ws">
+                    
+                    <div class="connection-buttons">
+                        <button class="btn btn-primary" id="connect-btn">接続</button>
+                        <button class="btn btn-danger" id="disconnect-btn" disabled>切断</button>
+                    </div>
+                </div>
+
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+                <!-- コントロールセクション -->
+                <div class="controls-grid">
+                    <!-- ROLL_DICE -->
+                    <div class="control-card">
+                        <h3>🎲 ROLL_DICE</h3>
+                        <p>サイコロを振ってコマを進めます。ゲームの基本アクションです。</p>
+                        <button class="btn-action" id="roll-dice-btn" disabled>サイコロを振る</button>
+                    </div>
+
+                    <!-- SUBMIT_CHOICE -->
+                    <div class="control-card">
+                        <h3>🔀 SUBMIT_CHOICE</h3>
+                        <p>分岐マス（branch）で移動先を選択します。</p>
+                        <label for="choice-selection">選択するタイルID:</label>
+                        <input type="number" id="choice-selection" placeholder="例: 15">
+                        <button class="btn-action" id="submit-choice-btn" disabled>選択を送信</button>
+                    </div>
+
+                    <!-- SUBMIT_GAMBLE -->
+                    <div class="control-card">
+                        <h3>🎰 SUBMIT_GAMBLE</h3>
+                        <p>ギャンブルマス（gamble）でハイ・ローを予想します。</p>
+                        <label for="gamble-bet">賭け金:</label>
+                        <input type="number" id="gamble-bet" placeholder="例: 100" value="100">
+                        <label>予想:</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="gamble-high" name="gamble-choice" value="High" checked>
+                                <label for="gamble-high">High (7以上)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="gamble-low" name="gamble-choice" value="Low">
+                                <label for="gamble-low">Low (6以下)</label>
+                            </div>
+                        </div>
+                        <button class="btn-action" id="submit-gamble-btn" disabled>ギャンブル実行</button>
+                    </div>
+
+                    <!-- SUBMIT_QUIZ -->
+                    <div class="control-card">
+                        <h3>📝 SUBMIT_QUIZ</h3>
+                        <p>クイズマス（quiz）で回答を選択します。回答インデックスは0から始まります。</p>
+                        <label for="quiz-selection">回答インデックス:</label>
+                        <input type="number" id="quiz-selection" placeholder="例: 0 (最初の選択肢)">
+                        <button class="btn-action" id="submit-quiz-btn" disabled>回答を送信</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右パネル：ログ -->
+        <div class="panel">
+            <div class="panel-header">
+                📋 通信ログ
+            </div>
+            <div class="panel-content">
+                <div class="log-controls">
+                    <button class="btn btn-primary btn-small" id="clear-log-btn">ログをクリア</button>
+                    <button class="btn btn-primary btn-small" id="export-log-btn">ログをエクスポート</button>
+                </div>
+                <div id="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const wsUrlInput = document.getElementById('ws-url');
+        const authTokenInput = document.getElementById('auth-token');
+        const connectBtn = document.getElementById('connect-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const logDiv = document.getElementById('log');
+        const connectionStatus = document.getElementById('connection-status');
+        const clearLogBtn = document.getElementById('clear-log-btn');
+        const exportLogBtn = document.getElementById('export-log-btn');
+
+        const allButtons = [
+            'roll-dice-btn', 'submit-choice-btn', 'submit-gamble-btn', 'submit-quiz-btn'
+        ];
+
+        let socket;
+        let logEntries = [];
+
+        function updateConnectionStatus(connected) {
+            if (connected) {
+                connectionStatus.innerHTML = '<span class="status status-connected">接続中</span>';
+            } else {
+                connectionStatus.innerHTML = '<span class="status status-disconnected">未接続</span>';
+            }
+        }
+
+        function log(type, message) {
+            const entry = {
+                type: type.toLowerCase(),
+                time: new Date().toLocaleTimeString('ja-JP'),
+                message: message
+            };
+            logEntries.push(entry);
+
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${entry.type}`;
+            
+            const logHeader = document.createElement('div');
+            logHeader.className = 'log-header';
+            
+            const logType = document.createElement('span');
+            logType.className = `log-type ${entry.type}`;
+            logType.textContent = entry.type;
+            
+            const logTime = document.createElement('span');
+            logTime.className = 'log-time';
+            logTime.textContent = entry.time;
+            
+            logHeader.appendChild(logType);
+            logHeader.appendChild(logTime);
+            
+            const logContent = document.createElement('div');
+            logContent.className = 'log-content';
+            
+            if (typeof message === 'object') {
+                logContent.textContent = JSON.stringify(message, null, 2);
+            } else {
+                logContent.textContent = message;
+            }
+            
+            logEntry.appendChild(logHeader);
+            logEntry.appendChild(logContent);
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function setControlsDisabled(disabled) {
+            connectBtn.disabled = !disabled;
+            disconnectBtn.disabled = disabled;
+            allButtons.forEach(id => {
+                document.getElementById(id).disabled = disabled;
+            });
+        }
+
+        clearLogBtn.addEventListener('click', () => {
+            logDiv.innerHTML = '';
+            logEntries = [];
+            log('SYSTEM', 'ログをクリアしました');
+        });
+
+        exportLogBtn.addEventListener('click', () => {
+            const logText = logEntries.map(entry => 
+                `[${entry.type.toUpperCase()}] ${entry.time}\n${typeof entry.message === 'object' ? JSON.stringify(entry.message, null, 2) : entry.message}\n`
+            ).join('\n---\n\n');
+            
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `websocket-log-${new Date().toISOString()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            log('SYSTEM', 'ログをエクスポートしました');
+        });
+
+        connectBtn.addEventListener('click', () => {
+            const url = wsUrlInput.value;
+            const token = authTokenInput.value;
+
+            if (!token) {
+                alert('Firebase ID Tokenを入力してください');
+                return;
+            }
+
+            const fullUrl = `${url}?token=${encodeURIComponent(token)}`;
+            log('SYSTEM', `接続中: ${fullUrl}`);
+            socket = new WebSocket(fullUrl);
+
+            socket.onopen = () => {
+                log('SYSTEM', 'WebSocket接続が確立されました');
+                updateConnectionStatus(true);
+                setControlsDisabled(false);
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    log('RECEIVED', data);
+                } catch (e) {
+                    log('RECEIVED', event.data);
+                }
+            };
+
+            socket.onclose = (event) => {
+                log('SYSTEM', `WebSocket接続が閉じられました (コード: ${event.code}, 理由: ${event.reason || 'なし'})`);
+                updateConnectionStatus(false);
+                setControlsDisabled(true);
+            };
+
+            socket.onerror = (error) => {
+                log('ERROR', `WebSocketエラーが発生しました: ${error.message || '不明なエラー'}`);
+            };
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            if (socket) {
+                socket.close();
+                log('SYSTEM', '切断リクエストを送信しました');
+            }
+        });
+
+        function sendMessage(type, payload) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const message = { type, payload };
+                socket.send(JSON.stringify(message));
+                log('SENT', message);
+            } else {
+                log('ERROR', 'WebSocketが接続されていません');
+                alert('WebSocketが接続されていません。先に接続してください。');
+            }
+        }
+
+        document.getElementById('roll-dice-btn').addEventListener('click', () => {
+            sendMessage('ROLL_DICE', {});
+        });
+
+        document.getElementById('submit-choice-btn').addEventListener('click', () => {
+            const value = document.getElementById('choice-selection').value;
+            if (value === '') {
+                alert('タイルIDを入力してください');
+                return;
+            }
+            const selection = parseInt(value, 10);
+            if (isNaN(selection)) {
+                alert('有効な数値を入力してください');
+                return;
+            }
+            sendMessage('SUBMIT_CHOICE', { selection: selection });
+        });
+        
+        document.getElementById('submit-gamble-btn').addEventListener('click', () => {
+            const bet = parseInt(document.getElementById('gamble-bet').value, 10);
+            const choice = document.querySelector('input[name="gamble-choice"]:checked').value;
+            if (isNaN(bet) || bet <= 0) {
+                alert('有効な賭け金を入力してください');
+                return;
+            }
+            sendMessage('SUBMIT_GAMBLE', { bet, choice });
+        });
+
+        document.getElementById('submit-quiz-btn').addEventListener('click', () => {
+            const value = document.getElementById('quiz-selection').value;
+            if (value === '') {
+                alert('回答インデックスを入力してください');
+                return;
+            }
+            const selection = parseInt(value, 10);
+            if (isNaN(selection)) {
+                alert('有効な数値を入力してください');
+                return;
+            }
+            sendMessage('SUBMIT_QUIZ', { selection: selection });
+        });
+
+        // 初期状態の設定
+        updateConnectionStatus(false);
+        log('SYSTEM', 'テストツールを起動しました');
+    </script>
+</body>
+</html>

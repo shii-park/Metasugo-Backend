@@ -3,6 +3,7 @@ package sugoroku
 import (
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 )
 
@@ -73,6 +74,18 @@ func (g *Game) AddPlayer(playerID string) (*Player, error) {
 	return player, nil
 }
 
+func (g *Game) DeletePlayer(playerID string) error {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if _, exists := g.players[playerID]; exists {
+		delete(g.players, playerID)
+		log.Printf("DeletePlayer: %s has deleted", playerID)
+		return nil
+	}
+	return fmt.Errorf("player with id %s does not exist", playerID)
+}
+
 func (g *Game) GetAllPlayers() []*Player {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
@@ -120,4 +133,12 @@ func (g *Game) GetPlayer(playerID string) (*Player, error) {
 		return nil, errors.New("the player does not exist")
 	}
 	return player, nil
+}
+
+func (g *Game) GetTile(tileID int) (*Tile, error) {
+	tile, exist := g.tileMap[tileID]
+	if !exist {
+		return nil, fmt.Errorf("tile with id %d does not exist", tileID)
+	}
+	return tile, nil
 }

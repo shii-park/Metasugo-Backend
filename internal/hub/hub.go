@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+	log "github.com/sirupsen/logrus"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
@@ -48,15 +49,14 @@ func (h *Hub) Run() {
 			h.mu.Lock()
 			h.clients[client.PlayerID] = client
 			h.mu.Unlock()
-			fmt.Printf("Client registered: %s\n", client.PlayerID)
+			log.WithField("playerID", client.PlayerID).Info("Client registered")
 
 		case client := <-h.unregister:
 			h.mu.Lock()
 			if _, ok := h.clients[client.PlayerID]; ok {
 				delete(h.clients, client.PlayerID)
 				close(client.Send)
-				fmt.Printf("Client unregistered: %s\n", client.PlayerID)
-			}
+									log.WithField("playerID", client.PlayerID).Info("Client unregistered")			}
 			h.mu.Unlock()
 
 		case message := <-h.broadcast:
@@ -84,8 +84,13 @@ func (h *Hub) Unregister(client *Client) {
 	h.unregister <- client
 }
 
-func (h *Hub) Broadcast(message []byte) {
-	h.broadcast <- message
+func (h *Hub) Broadcast(message interface{}) {
+	rawMessage, err := json.Marshal(message)
+	if err != nil {
+		log.WithError(err).Error("could not marshal broadcast message")
+		return
+	}
+	h.broadcast <- rawMessage
 }
 
 // 特定のプレイヤーにJSONメッセージを送信する
