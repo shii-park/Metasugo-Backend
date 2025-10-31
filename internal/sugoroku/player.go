@@ -19,7 +19,7 @@ type Player struct {
 	money       int
 	mu          sync.Mutex
 	isMarried   bool
-	HasChildren bool
+	Children    int
 	Job         string
 }
 
@@ -29,6 +29,7 @@ func NewPlayer(id string, position *Tile) *Player {
 		position:  position,
 		id:        id,
 		isMarried: false,
+		Children:  0,
 		money:     initialMoney,
 	}
 }
@@ -128,9 +129,9 @@ func (p *Player) GetIsMarried() bool {
 	return p.isMarried
 }
 
-// GetHasChildren はプレイヤーに子供がいるかどうかを返す
-func (p *Player) GetHasChildren() bool {
-	return p.HasChildren
+// GetChildren はプレイヤーに子供がいるかどうかを返す
+func (p *Player) GetChildren() int {
+	return p.Children
 }
 
 // GetJob はプレイヤーの職業を返す
@@ -149,8 +150,13 @@ func (p *Player) marry() {
 }
 
 // プレイヤーに子供を授けるメソッド
-func (p *Player) haveChildren() {
-	p.HasChildren = true
+func (p *Player) haveChild() {
+	p.Children++
+}
+
+// プレイヤーの子供の数を変更するメソッド
+func (p *Player) changeChildren(amount int) {
+	p.Children += amount
 }
 
 // プレイヤーの職業を設定するメソッド

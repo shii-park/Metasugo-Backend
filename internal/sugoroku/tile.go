@@ -18,6 +18,7 @@ const (
 	goal     TileKind = "goal"
 	conditional TileKind = "conditional"
 	setStatus TileKind = "setStatus"
+	childBonus TileKind = "childBonus"
 )
 
 const TilesJSONPath = "./tiles.json"
