@@ -62,7 +62,7 @@
         "effect": {
             "type": "quiz", 
             "quiz_id": 0,
-            "amount": 0
+            "amount": 200000
         },
         "prev_ids": [5], 
         "next_ids": [7]
@@ -191,7 +191,7 @@
         "effect": {
             "type": "quiz", 
             "quiz_id": 0,
-            "amount": 0
+            "amount": 500000
         },
         "prev_ids": [16], 
         "next_ids": [18]
@@ -372,7 +372,7 @@
         "effect": {
             "type": "quiz", 
             "quiz_id": 0,
-            "amount": 0
+            "amount": 900000
         },
         "prev_ids": [31], 
         "next_ids": [33]
@@ -470,7 +470,7 @@
         "effect": {
             "type": "quiz", 
             "quiz_id": 0,
-            "amount": 0
+            "amount": 400000
         },
         "prev_ids": [40], 
         "next_ids": [42]
@@ -590,7 +590,7 @@
         "effect": {
             "type": "quiz", 
             "quiz_id": 0,
-            "amount": 0
+            "amount": 500000
         },
         "prev_ids": [50], 
         "next_ids": [52]
@@ -663,7 +663,7 @@
         "effect": {
             "type": "quiz", 
             "quiz_id": 0,
-            "amount": 0
+            "amount": 200000
         },
         "prev_ids": [56], 
         "next_ids": [58]
@@ -800,7 +800,7 @@
         "effect": {
             "type": "quiz", 
             "quiz_id": 0,
-            "amount": 0
+            "amount": 100000
         },
         "prev_ids": [68], 
         "next_ids": [70]
@@ -861,7 +861,7 @@
         "effect": {
             "type": "quiz", 
             "quiz_id": 0,
-            "amount": 0
+            "amount": 500000
         },
         "prev_ids": [73], 
         "next_ids": [75]
@@ -979,7 +979,7 @@
         "effect": {
             "type": "quiz", 
             "quiz_id": 0,
-            "amount": 0
+            "amount": 300000
         },
         "prev_ids": [82], 
         "next_ids": [84]
@@ -1040,7 +1040,7 @@
         "effect": {
             "type": "quiz", 
             "quiz_id": 0,
-            "amount": 0
+            "amount": 700000
         },
         "prev_ids": [87], 
         "next_ids": [89]
