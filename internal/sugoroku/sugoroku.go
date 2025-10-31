@@ -134,3 +134,11 @@ func (g *Game) GetPlayer(playerID string) (*Player, error) {
 	}
 	return player, nil
 }
+
+func (g *Game) GetTile(tileID int) (*Tile, error) {
+	tile, exist := g.tileMap[tileID]
+	if !exist {
+		return nil, fmt.Errorf("tile with id %d does not exist", tileID)
+	}
+	return tile, nil
+}

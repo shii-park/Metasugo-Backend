@@ -43,7 +43,7 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	initialPosition := player.GetPosition().GetID()
 	initialMoney := player.GetMoney()
 	initialIsMarried := player.GetIsMarried()
-	initialHasChildren := player.GetHasChildren()
+	initialChildren := player.GetChildren()
 	initialJob := player.GetJob()
 
 	// 2. プレイヤーを移動させる
@@ -100,9 +100,9 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 		gm.broadcastPlayerStatusChanged(playerID, "isMarried", finalIsMarried)
 	}
 
-	finalHasChildren := player.GetHasChildren()
-	if initialHasChildren != finalHasChildren {
-		gm.broadcastPlayerStatusChanged(playerID, "hasChildren", finalHasChildren)
+	finalChildren := player.GetChildren()
+	if initialChildren != finalChildren {
+		gm.broadcastPlayerStatusChanged(playerID, "children", finalChildren)
 	}
 
 	finalJob := player.GetJob()

@@ -54,6 +54,15 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 		log.Printf("PlayerMoved: %s moved to %d", playerID, player.GetPosition().GetID())
 
 	}
+
+	// 新しいマスの効果を適用
+	newTile := player.GetPosition()
+	newEffect := newTile.GetEffect()
+	if err := newEffect.Apply(player, m.game, nil); err != nil {
+		return fmt.Errorf("failed to apply effect of new tile: %w", err)
+	}
+
+	finalMoney = player.GetMoney()
 	if initialMoney != finalMoney {
 		m.broadcastMoneyChanged(playerID, finalMoney)
 	}
