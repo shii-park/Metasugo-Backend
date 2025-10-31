@@ -28,8 +28,8 @@ func NewClient(hub *Hub, conn *websocket.Conn, playerID string) *Client {
 }
 
 const (
-	pongWait   = 60 * time.Second
-	writeWait  = 10 * time.Second
+	pongWait   = 6000000 * time.Second
+	writeWait  = 10000000 * time.Second
 	pingPeriod = (pongWait * 9) / 10
 )
 
