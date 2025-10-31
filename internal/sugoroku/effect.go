@@ -373,6 +373,14 @@ func (e SetStatusEffect) Apply(p *Player, g *Game, choice any) error {
 		if val, ok := e.Value.(string); ok {
 			p.setJob(val)
 		}
+	case "isProfessor":
+		if val, ok := e.Value.(bool); ok && val {
+			p.setJob(JobProfessor)
+		}
+	case "isLecturer":
+		if val, ok := e.Value.(bool); ok && val {
+			p.setJob(JobLecturer)
+		}
 	default:
 		return fmt.Errorf("unknown status to set: %s", e.Status)
 	}
