@@ -27,6 +27,12 @@ func SetupRoutes(router *gin.Engine, sg *sugoroku.Game) {
 		log.Fatalf("failed to create ranking handler: %v", err)
 	}
 
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+		})
+	})
+
 	// 認証が必要なルートのグループを作成
 	authRequired := router.Group("/")
 	authRequired.Use(middleware.AuthToken())
