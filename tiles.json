@@ -1,90 +1,1071 @@
 [
-  {
-    "id": 1,
-    "kind": "normal",
-    "detail": "スタート",
-    "effect": { "type": "no_effect" },
-    "prev_ids": [],
-    "next_ids": [2]
-  },
-  {
-    "id": 2,
-    "kind": "normal",
-    "detail": "通常マス",
-    "effect": { "type": "no_effect" },
-    "prev_ids": [1],
-    "next_ids": [3]
-  },
-  {
-    "id": 3,
-    "kind": "profit",
-    "detail": "利益マス",
-    "effect": { "type": "profit", "amount": 10 },
-    "prev_ids": [2],
-    "next_ids": [4]
-  },
-  {
-    "id": 4,
-    "kind": "normal",
-    "detail": "通常マス",
-    "effect": { "type": "no_effect" },
-    "prev_ids": [3],
-    "next_ids": [5]
-  },
-  {
-    "id": 5,
-    "kind": "branch",
-    "detail": "分岐マス",
-    "effect": { "type": "branch" },
-    "prev_ids": [4],
-    "next_ids": [6, 7]
-  },
-  {
-    "id": 6,
-    "kind": "normal",
-    "detail": "分岐先A",
-    "effect": { "type": "no_effect" },
-    "prev_ids": [5],
-    "next_ids": [8]
-  },
-  {
-    "id": 7,
-    "kind": "normal",
-    "detail": "分岐先B",
-    "effect": { "type": "no_effect" },
-    "prev_ids": [5],
-    "next_ids": [8]
-  },
-  {
-    "id": 8,
-    "kind": "normal",
-    "detail": "合流マス",
-    "effect": { "type": "no_effect" },
-    "prev_ids": [6, 7],
-    "next_ids": [9]
-  },
-  {
-    "id": 9,
-    "kind": "quiz",
-    "detail": "クイズマス",
-    "effect": { "type": "quiz", "quiz_id": 1, "amount": 10 },
-    "prev_ids": [8],
-    "next_ids": [10]
-  },
-  {
-    "id": 10,
-    "kind": "gamble",
-    "detail": "ギャンブルマス",
-    "effect": { "type": "gamble" },
-    "prev_ids": [9],
-    "next_ids": [11]
-  },
-  {
-    "id": 11,
-    "kind": "goal",
-    "detail": "ゴール",
-    "effect": {"type": "goal"},
-    "prev_ids": [10],
-    "next_ids": []
-  }
+    {
+        "id": 1,  
+        "kind": "normal", 
+        "detail": "貯金していた100万円をうまいこと使うぞ！！", 
+        "prev_ids": [], 
+        "next_ids": [2]
+    },
+
+    {
+        "id": 2,  
+        "kind": "profit", 
+        "detail": "就職祝いで親からお金をもらった！20万円もらう", 
+        "effect": {
+            "type": "profit",    
+            "amount": 200000
+        },
+        "prev_ids": [1], 
+        "next_ids": [3]
+    },
+
+    {
+        "id": 3,  
+        "kind": "profit", 
+        "detail": "コリオリの力でおばあさんを助けた！お礼に30万円もらう", 
+        "effect": {
+            "type": "profit",    
+            "amount": 300000
+        },
+        "prev_ids": [2], 
+        "next_ids": [4]
+    },
+
+    {
+        "id": 4,  
+        "kind": "overall", 
+        "detail": "親戚中から祝われた！みんなから1万円ずつもらう", 
+        "effect": {
+            "type": "overall",    
+            "profit_amount": 10000
+        },
+        "prev_ids": [3], 
+        "next_ids": [5]
+    },
+
+    {
+        "id": 5,  
+        "kind": "profit", 
+        "detail": "たまたま買った馬券が大当たり！200万円もらう", 
+        "effect": {
+            "type": "profit",    
+            "amount": 2000000
+        },
+        "prev_ids": [4], 
+        "next_ids": [6]
+    },
+
+    {
+        "id": 6,  
+        "kind": "quiz", 
+        "detail": "", 
+        "effect": {
+            "type": "quiz", 
+            "quiz_id": 0,
+            "amount": 0
+        },
+        "prev_ids": [5], 
+        "next_ids": [7]
+    },
+
+    {
+        "id": 7,  
+        "kind": "loss", 
+        "detail": "高専のロボットを壊してしまった！20万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 200000
+        },
+        "prev_ids": [6], 
+        "next_ids": [8]
+    },
+
+    {
+        "id": 8,  
+        "kind": "profit", 
+        "detail": "学生の時に書いた論文が論文誌に載ることに！100万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 1000000
+        },
+        "prev_ids": [7], 
+        "next_ids": [9]
+    },
+
+    {
+        "id": 9,  
+        "kind": "loss", 
+        "detail": "交通事故にあってしまった…通院費で50万円払う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 500000
+        },
+        "prev_ids": [8], 
+        "next_ids": [10]
+    },
+
+    {   
+        "id": 10, 
+        "kind": "neighbor", 
+        "detail": "引越しをした！お隣さんに挨拶回りをしよう。隣のマスの人に1万円払う", 
+        "effect": {
+            "type": "neighbor", 
+            "loss_amount": 10000
+        },
+        "prev_ids": [9], 
+        "next_ids": [11]
+    },
+
+    {
+        "id": 11,  
+        "kind": "profit", 
+        "detail": "最後のバイト代として多めに給料をもらった！5万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 50000
+        },
+        "prev_ids": [10], 
+        "next_ids": [12]
+    },
+
+    {
+        "id": 12,  
+        "kind": "loss", 
+        "detail": "甥っ子にパソコンをプレゼント！10万円", 
+        "effect": {
+            "type": "loss", 
+            "amount": 100000
+        },
+        "prev_ids": [11], 
+        "next_ids": [13]
+    },
+
+    {
+        "id": 13,  
+        "kind": "loss", 
+        "detail": "ゆっくりできるのも最後だ！パーっと遊んじゃうぞ！10万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 100000
+        },
+        "prev_ids": [12], 
+        "next_ids": [14]
+    },
+
+    {
+        "id": 14,  
+        "kind": "branch", 
+        "detail": "教員になったから働き方は考えないとな、何を使おう", 
+        "effect": {
+            "type": "branch"
+        },
+        "prev_ids": [13], 
+        "next_ids": [15, 27]
+    },
+
+
+    {
+        "id": 15,  
+        "kind": "normal", 
+        "detail": "", 
+        "prev_ids": [14], 
+        "next_ids": [16]
+    },
+
+    {   
+        "id": 16, 
+        "kind": "neighbor", 
+        "detail": "学生実験の担当で忙しそうな隣の先生を手伝った！2万円もらう", 
+        "effect": {
+            "type": "neighbor", 
+            "profit_amount": 20000
+        },
+        "prev_ids": [15], 
+        "next_ids": [17]
+    },
+
+    {
+        "id": 17,  
+        "kind": "quiz", 
+        "detail": "", 
+        "effect": {
+            "type": "quiz", 
+            "quiz_id": 0,
+            "amount": 0
+        },
+        "prev_ids": [16], 
+        "next_ids": [18]
+    },
+
+    {
+        "id": 18,  
+        "kind": "profit", 
+        "detail": "研究室の掃除をしていたら、去年の残った予算を発見！+20万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 200000
+        },
+        "prev_ids": [17], 
+        "next_ids": [19]
+    },
+
+    {
+        "id": 19,  
+        "kind": "profit", 
+        "detail": "全国の中学校を巡って地方講演、講演料をもらった！20万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 200000
+        },
+        "prev_ids": [18], 
+        "next_ids": [20]
+    },
+
+    {
+        "id": 20,  
+        "kind": "profit", 
+        "detail": "学会発表で企業の目に留まり、協同研究を行うことに！50万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 500000
+        },
+        "prev_ids": [19], 
+        "next_ids": [21]
+    },
+
+    {
+        "id": 21,  
+        "kind": "loss", 
+        "detail": "生徒が操作を誤り、研究室のパソコンがマルウェア塗れに！25万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 250000
+        },
+        "prev_ids": [20], 
+        "next_ids": [22]
+    },
+
+    {
+        "id": 22,  
+        "kind": "loss", 
+        "detail": "出張先で新幹線を乗り過ごしてしまい、自費で戻ることに…。15万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 150000
+        },
+        "prev_ids": [21], 
+        "next_ids": [23]
+    },
+
+    {
+        "id": 23,  
+        "kind": "overall", 
+        "detail": "賭けに負けた！みんなに1000円払う", 
+        "effect": {
+            "type": "overall",    
+            "loss_amount": 1000
+        },
+        "prev_ids": [22], 
+        "next_ids": [24]
+    },
+
+    {
+        "id": 24,  
+        "kind": "loss", 
+        "detail": "研究室の面々と親睦を深めるべく、親睦会を開くよ！5万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 50000
+        },
+        "prev_ids": [23], 
+        "next_ids": [25]
+    },
+
+    {
+        "id": 25,  
+        "kind": "profit", 
+        "detail": "最近出費が多い気がする…ちょっぴり食費を抑えるか…！10万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 100000
+        },
+        "prev_ids": [24], 
+        "next_ids": [26]
+    },
+
+    {
+        "id": 26,  
+        "kind": "branch", 
+        "detail": "学会で出会った人と意気投合、何度も議論を交わす内に良い雰囲気に…！？どうプロポーズしよう？", 
+        "effect": {
+            "type": "branch"
+        },
+        "prev_ids": [25, 37], 
+        "next_ids": [39, 53]
+    },
+
+
+    {
+        "id": 27,  
+        "kind": "normal", 
+        "detail": "忙しすぎるスケジュールで、身体よりも先にパソコンの方が限界を迎えてしまった…！？25万円失う", 
+        "effect": {
+            "type": "loss",
+            "amount": 250000
+        },
+        "prev_ids": [14], 
+        "next_ids": [28]
+    },
+
+    {
+        "id": 28,  
+        "kind": "profit", 
+        "detail": "予算申請が通り、欲しかった装置を購入できるお金をもらった！50万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 50
+        },
+        "prev_ids": [27], 
+        "next_ids": [29]
+    },
+
+    {
+        "id": 29,  
+        "kind": "profit", 
+        "detail": "他大学と共同研究開始！100万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 1000000
+        },
+        "prev_ids": [28], 
+        "next_ids": [30]
+    },
+
+    {
+        "id": 30,  
+        "kind": "overall", 
+        "detail": "論文が大成功！みんなから奢ってもらう。全員から1万円", 
+        "effect": {
+            "type": "overall",    
+            "profit_amount": 10000
+        },
+        "prev_ids": [29], 
+        "next_ids": [31]
+    },
+
+    {
+        "id": 31,  
+        "kind": "neighbor", 
+        "detail": "自分のせいで電気代が増え、研究室の運用費が上がった…。隣の人に1万円払う", 
+        "effect": {
+            "type": "neighbor",    
+            "loss_amount": 10000
+        },
+        "prev_ids": [30], 
+        "next_ids": [32]
+    },
+
+    {
+        "id": 32,  
+        "kind": "quiz", 
+        "detail": "", 
+        "effect": {
+            "type": "quiz", 
+            "quiz_id": 0,
+            "amount": 0
+        },
+        "prev_ids": [31], 
+        "next_ids": [33]
+    },
+
+    {
+        "id": 33,  
+        "kind": "loss", 
+        "detail": "出張続きでスーツがボロボロ、買い替えなきゃ…。5万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 50000
+        },
+        "prev_ids": [32], 
+        "next_ids": [34]
+    },
+
+    {
+        "id": 34,  
+        "kind": "loss", 
+        "detail": "連日の研究で過労、救急搬送されて数日入院…。30万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 300000
+        },
+        "prev_ids": [33], 
+        "next_ids": [35]
+    },
+
+    {
+        "id": 35,  
+        "kind": "profit", 
+        "detail": "学会で優秀発表賞を獲得！70万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 700000
+        },
+        "prev_ids": [34], 
+        "next_ids": [36]
+    },
+
+    {   
+        "id": 36, 
+        "kind": "profit", 
+        "detail": "教材を他校に提供し、謝礼をもらった！10万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 100000
+        },
+        "prev_ids": [35], 
+        "next_ids": [37]
+    },
+
+    {
+        "id": 37,  
+        "kind": "profit", 
+        "detail": "校外実習の引率で給料が出た！学外にも行けてラッキー！20万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 200000
+        },
+        "prev_ids": [36], 
+        "next_ids": [26]
+    },
+
+
+    {
+        "id": 39,  
+        "kind": "setStatus", 
+        "detail": "", 
+        "effect": {
+            "type": "setStatus",
+            "status": "isMarried",
+            "value": false
+        },
+        "prev_ids": [26], 
+        "next_ids": [40]
+    },
+
+    {
+        "id": 40,  
+        "kind": "gamble", 
+        "detail": "お馬さんのかけっこを応援しよう！", 
+        "effect": {
+            "type": "gamble"
+        },
+        "prev_ids": [39], 
+        "next_ids": [41]
+    },
+
+    {
+        "id": 41,  
+        "kind": "quiz", 
+        "detail": "", 
+        "effect": {
+            "type": "quiz", 
+            "quiz_id": 0,
+            "amount": 0
+        },
+        "prev_ids": [40], 
+        "next_ids": [42]
+    },
+
+    {
+        "id": 42,  
+        "kind": "loss", 
+        "detail": "親友の結婚式だ！長い付き合いだし、御祝儀は多めに包んであげたい。30万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 300000
+        },
+        "prev_ids": [41], 
+        "next_ids": [43]
+    },
+
+    {
+        "id": 43,  
+        "kind": "loss", 
+        "detail": "うわぁ、寝坊だ！大事な学会に遅刻しないため、飛行機の当日券を買うことに……20万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 200000
+        },
+        "prev_ids": [42], 
+        "next_ids": [44]
+    },
+
+    {
+        "id": 44,  
+        "kind": "profit", 
+        "detail": "研究室の本棚に絶版になった資料が！研究者の知り合いから譲って欲しいと頼まれ、売ってあげることに。50万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 500000
+        },
+        "prev_ids": [43], 
+        "next_ids": [45]
+    },
+
+    {
+        "id": 45,  
+        "kind": "loss", 
+        "detail": "研究の質を上げるためにも、備品を新調してみよう！50万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 500000
+        },
+        "prev_ids": [44], 
+        "next_ids": [46]
+    },
+
+    {
+        "id": 46,  
+        "kind": "neighbor", 
+        "detail": "自研究資料にコーヒーをこぼしちゃった……って、この資料、隣の先生に借りてた資料だ！弁償しなきゃ……隣の人に40万円あげる", 
+        "effect": {
+            "type": "neighbor",    
+            "loss_amount": 400000
+        },
+        "prev_ids": [45],  
+        "next_ids": [47]
+    },
+
+    {
+        "id": 47,  
+        "kind": "profit", 
+        "detail": "特別講師として、講演会に呼ばれたぞ。先生としての経験を発揮して、トークは大成功！30万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 300000
+        },
+        "prev_ids": [46], 
+        "next_ids": [48]
+    },
+
+    {
+        "id": 48, 
+        "kind": "gamble", 
+        "detail": "銀色の玉をびゅんびゅん打つぞ！", 
+        "effect": {
+            "type": "gamble"
+        },
+        "prev_ids": [47], 
+        "next_ids": [49]
+    },
+
+    {
+        "id": 49,  
+        "kind": "profit", 
+        "detail": "商店街のガラガラでハワイ旅行ゲット！実質30万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 300000
+        },
+        "prev_ids": [48], 
+        "next_ids": [50]
+    },
+
+    {
+        "id": 50,  
+        "kind": "profit", 
+        "detail": "研究の成果で助かった人がいたらしい…！お礼として200万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 2000000
+        },
+        "prev_ids": [49], 
+        "next_ids": [51]
+    },
+
+    {
+        "id": 51,  
+        "kind": "quiz", 
+        "detail": "", 
+        "effect": {
+            "type": "quiz", 
+            "quiz_id": 0,
+            "amount": 0
+        },
+        "prev_ids": [50], 
+        "next_ids": [52]
+    },
+
+    {
+        "id": 52, 
+        "kind": "branch", 
+        "detail": "コース長になって欲しいと頼まれた！だけど、毎日の授業や研究で忙しいなぁ……どうしよう？", 
+        "effect": {
+            "type": "branch"
+        },
+        "prev_ids": [51, 65], 
+        "next_ids": [67, 79]
+    },
+
+    
+    {
+        "id": 53,  
+        "kind": "setStatus", 
+        "detail": "", 
+        "effect": {
+            "type": "setStatus",
+            "status": "isMarried",
+            "value": true
+        }, 
+        "prev_ids": [26], 
+        "next_ids": [54]
+    },
+
+    {
+        "id": 54,  
+        "kind": "gamble", 
+        "detail": "ここで買って家族を喜ばすぞ〜〜！", 
+        "effect": {
+            "type": "gamble"
+        },
+        "prev_ids": [53], 
+        "next_ids": [55]
+    },
+
+    {
+        "id": 55,  
+        "kind": "profit", 
+        "detail": "特別講師として、講演会に呼ばれたぞ。講演の合間に家族のエピソードで大盛り上がり！40万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 400000
+        },
+        "prev_ids": [54], 
+        "next_ids": [56]
+    },
+
+    {
+        "id": 56,  
+        "kind": "loss", 
+        "detail": "仕事と生活の両立はお互い大変だし、家政婦さんを雇ってみよう。40万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 400000
+        },
+        "prev_ids": [55], 
+        "next_ids": [57]
+    },
+
+    {
+        "id": 57,  
+        "kind": "quiz", 
+        "detail": "", 
+        "effect": {
+            "type": "quiz", 
+            "quiz_id": 0,
+            "amount": 0
+        },
+        "prev_ids": [56], 
+        "next_ids": [58]
+    },
+
+    {
+        "id": 58,  
+        "kind": "overall", 
+        "detail": "結婚祝いでみんなから1万円もらう", 
+        "effect": {
+            "type": "overall",    
+            "profit_amount": 10000
+        },
+        "prev_ids": [57], 
+        "next_ids": [59]
+    },
+
+    {
+        "id": 59,  
+        "kind": "loss", 
+        "detail": "あーーーっ！大事な研究機器が故障しちゃった！これがないと研究できないし、買いなおさなきゃ……100万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 1000000
+        },
+        "prev_ids": [58], 
+        "next_ids": [60]
+    },
+
+    {
+        "id": 60,  
+        "kind": "setStatus", 
+        "detail": "子供を授かった！かわいいなぁ。いい子に育てるぞ！", 
+        "effect": {
+            "type": "setStatus",
+            "status": "children",
+            "value": 1
+        },
+        "prev_ids": [59], 
+        "next_ids": [61]
+    },
+
+    {
+        "id": 61,  
+        "kind": "profit", 
+        "detail": "雑誌で自分の研究について記事を書く依頼が！原稿料50万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 500000
+        },
+        "prev_ids": [60], 
+        "next_ids": [62]
+    },
+
+    {
+        "id": 62,  
+        "kind": "neighbor", 
+        "detail": "普段からお世話になってるので何かお礼がしたいな…プレゼントしよう！隣の人に1万円払う", 
+        "effect": {
+            "type": "neighbor",    
+            "loss_amount": 10000
+        },
+        "prev_ids": [61], 
+        "next_ids": [63]
+    },
+
+    {
+        "id": 63,  
+        "kind": "loss", 
+        "detail": "夫婦水入らずで旅行に行った。こういうゆっくりした時間が必要なんだなぁ…50万円払う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 500000
+        },
+        "prev_ids": [62], 
+        "next_ids": [64]
+    },
+
+    {
+        "id": 64,  
+        "kind": "setStatus", 
+        "detail": "子供を授かった！かわいいなぁ。いい子に育てるぞ！", 
+        "effect": {
+            "type": "setStatus",
+            "status": "children",
+            "value": 1
+        }, 
+        "prev_ids": [63], 
+        "next_ids": [65]
+    },
+
+    {
+        "id": 65,  
+        "kind": "profit", 
+        "detail": "家族手当をもらえたぞ！生活費に充ててしっかり家計を守ろう！30万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 300000
+        },
+        "prev_ids": [64], 
+        "next_ids": [52]
+    },
+
+
+    {
+        "id": 67,  
+        "kind": "setStatus", 
+        "detail": "", 
+        "effect": {
+            "type": "setStatus",
+            "status": "isProfessor",
+            "value": true
+        }, 
+        "prev_ids": [52], 
+        "next_ids": [68]
+    },
+
+    {
+        "id": 68, 
+        "kind": "profit", 
+        "detail": "会議を効率化するシステムを作った！仕事がはかどる～！5万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 50000
+        },
+        "prev_ids": [67], 
+        "next_ids": [69]
+    },
+
+    {
+        "id": 69,  
+        "kind": "quiz", 
+        "detail": "", 
+        "effect": {
+            "type": "quiz", 
+            "quiz_id": 0,
+            "amount": 0
+        },
+        "prev_ids": [68], 
+        "next_ids": [70]
+    },
+
+    {
+        "id": 70,  
+        "kind": "profit", 
+        "detail": "サーバー障害を一晩で復旧！全教員から感謝された！10万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 100000
+        },
+        "prev_ids": [69], 
+        "next_ids": [71]
+    },
+
+    {
+        "id": 71,  
+        "kind": "loss", 
+        "detail": "提出期限を1日間違えて助成金を逃す…。50万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 500000
+        },
+        "prev_ids": [70], 
+        "next_ids": [72]
+    },
+
+    {
+        "id": 72,  
+        "kind": "neighbor", 
+        "detail": "他コースのネットワークトラブルを解決！隣の人から10万円もらう", 
+        "effect": {
+            "type": "neighbor",    
+            "profit_amount": 100000
+        },
+        "prev_ids": [71], 
+        "next_ids": [73]
+    },
+
+    {
+        "id": 73,  
+        "kind": "profit", 
+        "detail": "学生のプログラムが企業で採用！研究支援金をもらった！50万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 500000
+        },
+        "prev_ids": [72], 
+        "next_ids": [74]
+    },
+
+    {
+        "id": 74,  
+        "kind": "quiz", 
+        "detail": "", 
+        "effect": {
+            "type": "quiz", 
+            "quiz_id": 0,
+            "amount": 0
+        },
+        "prev_ids": [73], 
+        "next_ids": [75]
+    },
+
+    {
+        "id": 75,  
+        "kind": "profit", 
+        "detail": "情報コース紹介動画を作成、再生数1万回突破！30万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 300000
+        },
+        "prev_ids": [74], 
+        "next_ids": [76]
+    },
+
+    {
+        "id": 76,  
+        "kind": "loss", 
+        "detail": "サーバーバックアップを忘れて全データ消失…。100万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 1000000
+        },
+        "prev_ids": [75], 
+        "next_ids": [77]
+    },
+
+    {
+        "id": 77,  
+        "kind": "loss", 
+        "detail": "プリンタが原因不明の故障、修理に出さなきゃ…。10万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 100000
+        },
+        "prev_ids": [76], 
+        "next_ids": [78]
+    },
+
+    {
+        "id": 78,  
+        "kind": "goal", 
+        "detail": "", 
+        "effect": {
+            "type": "goal"
+        },
+        "prev_ids": [77], 
+        "next_ids": []
+    },
+
+
+    {
+        "id": 79,  
+        "kind": "setStatus", 
+        "detail": "", 
+        "effect": {
+            "type": "setStatus",
+            "status": "isProfessor",
+            "value": false
+        }, 
+        "prev_ids": [52], 
+        "next_ids": [80]
+    },
+
+    {
+        "id": 80,  
+        "kind": "conditional", 
+        "detail": "貯金も貯まってきたけれど、どう使うべきかなぁ。子供のために貯金を残しておくのもいいね！", 
+        "effect": {
+            "type": "conditional", 
+            "condition": "hasChildren",  
+            "true_effect": {    
+                "type": "childBonus",    
+                "loss_amount_per_child": 500000
+            },  
+            "false_effect": {       
+                "type": "profit",      
+                "amount": 1000000   
+            }
+        },
+        "prev_ids": [79], 
+        "next_ids": [81]
+    },
+
+    {
+        "id": 81,  
+        "kind": "loss", 
+        "detail": "研究室の本棚が倒れてきた！かなり老朽化してたみたいだし、買い替えよう。70万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 700000
+        },
+        "prev_ids": [80], 
+        "next_ids": [82]
+    },
+
+    {
+        "id": 82,  
+        "kind": "overall", 
+        "detail": "定年の年齢になった！みんなから祝ってもらう。1万円もらう", 
+        "effect": {
+            "type": "overall",    
+            "profit_amount": 10000
+        },
+        "prev_ids": [81], 
+        "next_ids": [83]
+    },
+
+    {
+        "id": 83,  
+        "kind": "quiz", 
+        "detail": "", 
+        "effect": {
+            "type": "quiz", 
+            "quiz_id": 0,
+            "amount": 0
+        },
+        "prev_ids": [82], 
+        "next_ids": [84]
+    },
+
+    {
+        "id": 84,  
+        "kind": "loss", 
+        "detail": "実験失敗で怪我をしてしまった！この歳になるとちょっとした怪我も怖いね……治療費として50万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 500000
+        },
+        "prev_ids": [83], 
+        "next_ids": [85]
+    },
+
+    {
+        "id": 85,  
+        "kind": "profit", 
+        "detail": "若い頃の研究が再び評価されて話題に！テレビや雑誌の取材で大忙しだ！40万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 400000
+        },
+        "prev_ids": [84], 
+        "next_ids": [86]
+    },
+
+    {
+        "id": 86,  
+        "kind": "conditional", 
+        "detail": "地域のゲートボール大会で優勝！10万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 100000
+        },
+        "prev_ids": [85], 
+        "next_ids": [87]
+    },
+
+    {
+        "id": 87,  
+        "kind": "profit", 
+        "detail": "長年積み重ねてきた研究で、ついに特許を取ったぞ！120万円もらう", 
+        "effect": {
+            "type": "profit", 
+            "amount": 1200000
+        },
+        "prev_ids": [86], 
+        "next_ids": [88]
+    },
+
+    {
+        "id": 88,  
+        "kind": "quiz", 
+        "detail": "", 
+        "effect": {
+            "type": "quiz", 
+            "quiz_id": 0,
+            "amount": 0
+        },
+        "prev_ids": [87], 
+        "next_ids": [89]
+    },
+
+    {
+        "id": 89,  
+        "kind": "loss", 
+        "detail": "退職前に、お世話になった実験室を綺麗にしよう！設備も新しいものを導入しようかな。100万円失う", 
+        "effect": {
+            "type": "loss", 
+            "amount": 1000000
+        },
+        "prev_ids": [88], 
+        "next_ids": [90]
+    },
+
+    {
+        "id": 90,  
+        "kind": "goal", 
+        "detail": "", 
+        "effect": {
+            "type": "goal"
+        },
+        "prev_ids": [89], 
+        "next_ids": []
+    }
 ]
