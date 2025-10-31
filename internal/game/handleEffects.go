@@ -1,7 +1,6 @@
 package game
 
 import (
-	"errors"
 	"fmt"
 	"log"
 
@@ -49,7 +48,6 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 
 	// 適用後の最終的な状態を取得
 	finalPosition := player.GetPosition().GetID()
-	finalMoney := player.GetMoney()
 
 	// 状態が変化していれば、全クライアントに通知
 	if initialPosition != finalPosition {
@@ -66,7 +64,7 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 	}
 
 	// ステータスの変更を検知して通知
-	finalMoney = player.GetMoney()
+	finalMoney := player.GetMoney()
 	if initialMoney != finalMoney {
 		m.broadcastMoneyChanged(playerID, finalMoney)
 	}
@@ -153,15 +151,10 @@ func (m *GameManager) HandleQuiz(playerID string, payload map[string]interface{}
 	}
 	initialMoney := player.GetMoney()
 
-	selection, ok := payload["selection"]
-	if !ok {
-		return errors.New("selection not found in payload")
-	}
-
 	currentTile := player.GetPosition()
 	effect := currentTile.GetEffect()
 
-	if err := effect.Apply(player, m.game, selection); err != nil {
+	if err := effect.Apply(player, m.game, payload); err != nil {
 		return fmt.Errorf("failed to apply quiz choice: %w", err)
 	}
 
