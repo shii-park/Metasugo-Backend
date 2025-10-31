@@ -134,7 +134,6 @@ func (gm *GameManager) GetAllPlayerStatuses() map[string]map[string]interface{} 
 	return statuses
 }
 
-
 func (gm *GameManager) RegisterPlayerClient(playerID string, c *hub.Client) error {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
@@ -237,16 +236,13 @@ func (gm *GameManager) Goal(playerID string, c *hub.Client) error {
 	gm.broadcastPlayerFinished(playerID, money)
 	log.Info("Broadcast completed")
 
-	log.Info("Calling UnregisterPlayerClient asynchronously")
-	// 非同期で登録解除を行うことで、Broadcast処理との競合を回避
-	go func() {
-		log.Info("UnregisterPlayerClient goroutine started")
-		if err := gm.UnregisterPlayerClient(playerID, c); err != nil {
-			log.WithError(err).Error("UnregisterPlayerClient failed")
-		} else {
-			log.Info("UnregisterPlayerClient completed successfully")
-		}
-	}()
+	// 同期的に登録解除を行う
+	log.Info("Calling unregisterPlayerClientLocked synchronously")
+	if err := gm.unregisterPlayerClientLocked(playerID, c); err != nil {
+		log.WithError(err).Error("unregisterPlayerClientLocked failed")
+	} else {
+		log.Info("unregisterPlayerClientLocked completed successfully")
+	}
 
 	return nil
 }
