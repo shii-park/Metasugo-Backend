@@ -26,6 +26,10 @@ func SetupRoutes(router *gin.Engine, sg *sugoroku.Game) {
 	if err != nil {
 		log.Fatalf("failed to create ranking handler: %v", err)
 	}
+	maxAmtHandler, err := NewMaxAmtHandler()
+	if err != nil {
+		log.Fatalf("MaxAmtHandlerの生成に失敗: %v", err)
+	}
 
 	// 認証が必要なルートのグループを作成
 	authRequired := router.Group("/")
@@ -37,5 +41,7 @@ func SetupRoutes(router *gin.Engine, sg *sugoroku.Game) {
 		authRequired.GET("/ranking", rankingHandler.GetRanking)
 		// タイルのルーティング
 		authRequired.GET("/tiles", TilesHandler)
+		//最高金額取得のルーティング
+		authRequired.GET("/maxamt", maxAmtHandler.GetMaxAmt)
 	}
 }
