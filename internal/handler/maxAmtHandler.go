@@ -23,7 +23,6 @@ func NewMaxAmtHandler() (*MaxAmtHandler, error) {
 func (h *MaxAmtHandler) GetMaxAmt(c *gin.Context) {
 	ctx := c.Request.Context()
 	userID := c.GetString("firebase_uid")
-	println(userID)
 
 	docRef := h.firestore.Collection("playerClearData").Doc(userID)
 	docSnap, err := docRef.Get(ctx)
@@ -37,5 +36,5 @@ func (h *MaxAmtHandler) GetMaxAmt(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, money)
+	c.JSON(http.StatusOK, gin.H{"money": money})
 }
