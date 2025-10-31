@@ -67,8 +67,16 @@ func AuthToken() gin.HandlerFunc {
 			return
 		}
 
+		// Firebase Authenticationからユーザー情報を取得してdisplayNameを取得
+		user, err := firebaseAuth.GetUser(c.Request.Context(), token.UID)
+		displayName := ""
+		if err == nil && user.DisplayName != "" {
+			displayName = user.DisplayName
+		}
+
 		userEmail, _ := token.Claims["email"].(string)
 		c.Set("firebase_uid", token.UID)
+		c.Set("display_name", displayName)
 		c.Set("user_email", userEmail) //これは必要ないかも
 		c.Next()
 	}

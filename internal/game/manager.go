@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"firebase.google.com/go/v4/auth"
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
 	"github.com/shii-park/Metasugo-Backend/internal/service"
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
@@ -18,6 +19,7 @@ type GameManager struct {
 	hub           *hub.Hub
 	playerClients map[string]*hub.Client
 	firestore     *firestore.Client
+	authClient    *auth.Client
 	mu            sync.RWMutex
 }
 
@@ -26,11 +28,16 @@ func NewGameManager(g *sugoroku.Game, h *hub.Hub) *GameManager {
 	if err != nil {
 		log.WithError(err).Fatal("failed to get firestore client")
 	}
+	ac, err := service.GetAuthClient() // ← おそらく service パッケージにあるはず
+	if err != nil {
+		log.WithError(err).Fatal("failed to get auth client")
+	}
 	return &GameManager{
 		game:          g,
 		hub:           h,
 		playerClients: make(map[string]*hub.Client),
 		firestore:     fs,
+		authClient:    ac,
 	}
 }
 func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
@@ -127,14 +134,14 @@ func (gm *GameManager) RegisterPlayerClient(playerID string, c *hub.Client) erro
 func (gm *GameManager) UnregisterPlayerClient(playerID string, c *hub.Client) error {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
-	
+
 	return gm.unregisterPlayerClientLocked(playerID, c)
 }
 
 // unregisterPlayerClientLocked は、既にロックが取得されている状態でプレイヤーを登録解除します
 func (gm *GameManager) unregisterPlayerClientLocked(playerID string, c *hub.Client) error {
 	log.WithField("playerID", playerID).Info("UnregisterPlayerClient: Starting")
-	
+
 	// ゲームからプレイヤーを削除
 	log.WithField("playerID", playerID).Info("UnregisterPlayerClient: Deleting player from game")
 	err := gm.game.DeletePlayer(playerID)
@@ -143,7 +150,7 @@ func (gm *GameManager) unregisterPlayerClientLocked(playerID string, c *hub.Clie
 		return err
 	}
 	log.WithField("playerID", playerID).Info("UnregisterPlayerClient: Player deleted from game")
-	
+
 	// GameManagerからプレイヤーを削除
 	delete(gm.playerClients, playerID)
 	log.WithField("playerID", playerID).Info("UnregisterPlayerClient: Player deleted from playerClients map")
@@ -159,7 +166,7 @@ func (gm *GameManager) unregisterPlayerClientLocked(playerID string, c *hub.Clie
 
 func (gm *GameManager) Goal(playerID string, c *hub.Client) error {
 	log.WithField("playerID", playerID).Info("Goal function called")
-	
+
 	player, err := gm.game.GetPlayer(playerID)
 	if err != nil {
 		log.WithError(err).Error("failed to get player in Goal")
@@ -169,19 +176,36 @@ func (gm *GameManager) Goal(playerID string, c *hub.Client) error {
 	log.WithFields(log.Fields{"playerID": playerID, "money": money}).Info("Player retrieved successfully")
 
 	fmt.Printf("%s goal!!!!!!!", playerID)
+	var displayName string
+	ctxAuth, cancelAuth := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelAuth()
 
+	userRecord, err := gm.authClient.GetUser(ctxAuth, playerID)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+	if err != nil {
+		log.WithError(err).Errorf("Authからユーザー情報取得失敗 (UID: %s)", playerID)
+		displayName = "（名前不明）" // エラー時のフォールバック
+	} else {
+		displayName = userRecord.DisplayName
+		if displayName == "" {
+			log.Warnf("Authにユーザーは存在するがDisplayName未設定 (UID: %s)", playerID)
+			displayName = "（名前なし）" // DisplayNameが空の場合のフォールバック
+		}
+		defer cancel()
+	}
 	// Firestoreに保存するデータを作成
 	data := map[string]interface{}{
-		"playerID":   playerID,
-		"money":      money,
-		"finishedAt": time.Now(),
+		"playerID":    playerID,
+		"displayName": displayName,
+		"money":       money,
+		"finishedAt":  time.Now(),
 	}
 
 	// Firestoreにデータを保存
 	log.Info("Starting Firestore save")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	_, err = gm.firestore.Collection("playerClearData").Doc(playerID).Set(ctx, data)
+	_, _, err = gm.firestore.Collection("playerClearData").Add(ctx, data)
 	if err != nil {
 		log.WithError(err).Error("failed to save to firestore")
 		return fmt.Errorf("failed to save player data to firestore: %w", err)
@@ -202,6 +226,6 @@ func (gm *GameManager) Goal(playerID string, c *hub.Client) error {
 			log.Info("UnregisterPlayerClient completed successfully")
 		}
 	}()
-	
+
 	return nil
 }
