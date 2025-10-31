@@ -34,6 +34,9 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 	// 適用前の状態を記録
 	initialPosition := player.GetPosition().GetID()
 	initialMoney := player.GetMoney()
+	initialIsMarried := player.GetIsMarried()
+	initialChildren := player.GetChildren()
+	initialJob := player.GetJob()
 
 	// 選択を適用
 	currentTile := player.GetPosition()
@@ -62,9 +65,25 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 		return fmt.Errorf("failed to apply effect of new tile: %w", err)
 	}
 
+	// ステータスの変更を検知して通知
 	finalMoney = player.GetMoney()
 	if initialMoney != finalMoney {
 		m.broadcastMoneyChanged(playerID, finalMoney)
+	}
+
+	finalIsMarried := player.GetIsMarried()
+	if initialIsMarried != finalIsMarried {
+		m.broadcastPlayerStatusChanged(playerID, "isMarried", finalIsMarried)
+	}
+
+	finalChildren := player.GetChildren()
+	if initialChildren != finalChildren {
+		m.broadcastPlayerStatusChanged(playerID, "children", finalChildren)
+	}
+
+	finalJob := player.GetJob()
+	if initialJob != finalJob {
+		m.broadcastPlayerStatusChanged(playerID, "job", finalJob)
 	}
 
 	return nil
