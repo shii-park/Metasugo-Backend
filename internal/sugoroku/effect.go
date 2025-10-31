@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
+	"time"
 )
 
 type Effect interface {
@@ -75,6 +77,9 @@ func (e QuizEffect) RequiresUserInput() bool { return true }
 
 // クイズIDからクイズを取ってきて、そのクイズを返す
 func (e QuizEffect) GetOptions(tile *Tile) any {
+	if e.QuizID == 0 {
+		return GetRandomQuiz()
+	}
 	for _, quiz := range quizzes {
 		if quiz.ID == e.QuizID {
 			return quiz
@@ -85,20 +90,26 @@ func (e QuizEffect) GetOptions(tile *Tile) any {
 
 // クイズの実際の処理
 func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
-	// テスト時にfloat64型でもらうため、int型に変換している
-	var selectedOptionIndex int
-	switch v := choice.(type) {
-	case int:
-		selectedOptionIndex = v
-	case float64:
-		selectedOptionIndex = int(v)
-	default:
-		return fmt.Errorf("invalid choice for quiz: unexpected type %T", v)
+	choiceMap, ok := choice.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("invalid choice for quiz: unexpected type %T", choice)
 	}
+
+	quizIDFloat, ok := choiceMap["quizID"].(float64)
+	if !ok {
+		return errors.New("quizID not found or is not a number in choice")
+	}
+	quizID := int(quizIDFloat)
+
+	selectionFloat, ok := choiceMap["selection"].(float64)
+	if !ok {
+		return errors.New("selection not found or is not a number in choice")
+	}
+	selectedOptionIndex := int(selectionFloat)
 
 	var targetQuiz *Quiz
 	for i := range quizzes {
-		if quizzes[i].ID == e.QuizID {
+		if quizzes[i].ID == quizID {
 			targetQuiz = &quizzes[i]
 			break
 		}
@@ -115,6 +126,15 @@ func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
 	}
 
 	return nil
+}
+
+func GetRandomQuiz() *Quiz {
+	if len(quizzes) == 0 {
+		return nil
+	}
+	rand.Seed(time.Now().UnixNano())
+	randomIndex := rand.Intn(len(quizzes))
+	return &quizzes[randomIndex]
 }
 
 // 分かれ道マス
