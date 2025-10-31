@@ -28,27 +28,23 @@ func main() {
 		log.Fatal("環境変数 GOOGLE_APPLICATION_CREDENTIALS が設定されていません")
 	}
 
-	router := gin.Default()
 
+	
+	
+	router := gin.New()
+	router.Use(gin.Logger())
+	router.Use(middleware.Recovery())
 	// CORS 設定
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"}, // フロントエンドURL
+		AllowOriginFunc: func(origin string) bool {
+			return true // すべてのオリジンを許可
+		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Authorization", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-
-	// Firebase初期化
-	credFile := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
-	if credFile == "" {
-		log.Fatal("環境変数GOOGLE_APPLICATION_CREDENTIALSが設定されていません")
-	}
-
-	router := gin.New()
-	router.Use(gin.Logger())
-	router.Use(middleware.Recovery())
 	err = middleware.InitFirebase()
 	if err != nil {
 		log.Fatal("Firebaseの初期化に失敗:", err)
