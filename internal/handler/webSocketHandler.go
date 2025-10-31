@@ -59,6 +59,15 @@ func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc
 		h.hub.Register(client)
 		gm.RegisterPlayerClient(userID, client)
 
+		// 他のプレイヤーの情報を送信
+		allStatuses := gm.GetAllPlayerStatuses()
+		if err := client.SendJSON(gin.H{"type": "ALL_PLAYER_STATUSES", "payload": allStatuses}); err != nil {
+			log.WithFields(log.Fields{
+				"error":  err,
+				"userID": userID,
+			}).Error("Failed to send all player statuses")
+		}
+
 		go client.WritePump()
 		go client.ReadPump()
 

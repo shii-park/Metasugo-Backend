@@ -120,6 +120,21 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	return nil
 }
 
+func (gm *GameManager) GetAllPlayerStatuses() map[string]map[string]interface{} {
+	gm.mu.RLock()
+	defer gm.mu.RUnlock()
+
+	statuses := make(map[string]map[string]interface{})
+	for _, player := range gm.game.GetAllPlayers() {
+		statuses[player.GetID()] = map[string]interface{}{
+			"money":    player.GetMoney(),
+			"position": player.GetPosition().GetID(),
+		}
+	}
+	return statuses
+}
+
+
 func (gm *GameManager) RegisterPlayerClient(playerID string, c *hub.Client) error {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
