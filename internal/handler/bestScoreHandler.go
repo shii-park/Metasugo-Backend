@@ -66,7 +66,6 @@ func (h *BestScoreHandler) GetBestScore(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"userId": userID,
-		"money":  bestMoney,
+		"money": bestMoney,
 	})
 }
