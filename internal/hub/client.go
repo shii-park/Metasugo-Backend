@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	log "github.com/sirupsen/logrus"
 )
 
 type Client struct {
@@ -48,6 +49,10 @@ func (c *Client) ReadPump() {
 	for {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
+			log.WithFields(log.Fields{
+				"error":    err,
+				"playerID": c.PlayerID,
+			}).Info("ReadPump closing due to error")
 			break
 		}
 		c.Receive <- message
@@ -70,11 +75,19 @@ func (c *Client) WritePump() {
 				return
 			}
 			if err := c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
+				log.WithFields(log.Fields{
+					"error":    err,
+					"playerID": c.PlayerID,
+				}).Warn("Error writing text message")
 				return
 			}
 		case <-ticker.C:
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				log.WithFields(log.Fields{
+					"error":    err,
+					"playerID": c.PlayerID,
+				}).Warn("Error writing ping message")
 				return
 			}
 		}

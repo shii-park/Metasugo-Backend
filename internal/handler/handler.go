@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shii-park/Metasugo-Backend/internal/game"
@@ -24,13 +24,17 @@ func SetupRoutes(router *gin.Engine, sg *sugoroku.Game) {
 	// RankingHandlerの初期化
 	rankingHandler, err := NewRankingHandler()
 	if err != nil {
-		log.Fatalf("failed to create ranking handler: %v", err)
+		log.WithError(err).Fatal("failed to create ranking handler")
 	}
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status": "ok",
 		})
+	})
+
+	router.GET("/panic", func(c *gin.Context) {
+		panic("test panic")
 	})
 
 	// 認証が必要なルートのグループを作成

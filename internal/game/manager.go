@@ -3,11 +3,11 @@ package game
 import (
 	"context"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
 	"cloud.google.com/go/firestore"
+	log "github.com/sirupsen/logrus"
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
 	"github.com/shii-park/Metasugo-Backend/internal/service"
 	"github.com/shii-park/Metasugo-Backend/internal/sugoroku"
@@ -24,7 +24,7 @@ type GameManager struct {
 func NewGameManager(g *sugoroku.Game, h *hub.Hub) *GameManager {
 	fs, err := service.GetFirestoreClient()
 	if err != nil {
-		log.Fatalf("failed to get firestore client: %v", err)
+		log.WithError(err).Fatal("failed to get firestore client")
 	}
 	return &GameManager{
 		game:          g,
@@ -50,7 +50,10 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	flag := player.Move(steps) //めんどくさくなったのでフラグで実装してる。Effect型で比較するなどもっといいやり方はあると思う
 
 	// 効果を判定
-	log.Printf("PlayerMoved: %s moved to %d", playerID, player.GetPosition().GetID())
+	log.WithFields(log.Fields{
+		"playerID":    playerID,
+		"newPosition": player.GetPosition().GetID(),
+	}).Info("Player moved")
 	// 3. マス効果を判定・適用
 
 	finalPosition := player.GetPosition().GetID()

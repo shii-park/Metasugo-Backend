@@ -2,11 +2,12 @@ package handler
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/shii-park/Metasugo-Backend/internal/game"
 	"github.com/shii-park/Metasugo-Backend/internal/hub"
 	"github.com/shii-park/Metasugo-Backend/internal/service"
@@ -46,7 +47,10 @@ func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc
 		//HTTPをWebSocketに昇格
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
-			log.Printf("Failed to upgrade connection: %v", err)
+			log.WithFields(log.Fields{
+				"error":  err,
+				"userID": userID,
+			}).Error("Failed to upgrade connection")
 			return
 		}
 
@@ -76,28 +80,39 @@ func (h *WebSocketHandler) processMessage(gm *game.GameManager, client *hub.Clie
 	for message := range client.Receive {
 		var req wsRequest
 		if err := json.Unmarshal(message, &req); err != nil {
+			log.WithFields(log.Fields{
+				"error":   err,
+				"message": string(message),
+			}).Warn("Failed to unmarshal JSON")
 			_ = client.SendJSON(gin.H{ //TODO: sendErrorをつかうようにする
 				"type": "error", "code": "invalid_json", "message": "JSONの解析に失敗しました"})
 			continue
 		}
+
+		logCtx := log.WithFields(log.Fields{
+			"userID":  userID,
+			"request": req.Type,
+		})
+
 		switch req.Type {
 		case "ROLL_DICE":
 			if err := gm.HandleMove(userID); err != nil {
-				log.Printf("Error during handleRollDice: %v", err)
+				logCtx.WithField("error", err).Error("Error during HandleMove")
 			}
 		case "SUBMIT_CHOICE":
 			if err := gm.HandleBranch(userID, req.Payload); err != nil {
-				log.Printf("Error during handleSubmitChoice: %v", err)
+				logCtx.WithField("error", err).Error("Error during HandleBranch")
 			}
 		case "SUBMIT_GAMBLE":
 			if err := gm.HandleGamble(userID, req.Payload); err != nil {
-				log.Printf("Error during handleGamble: %v", err)
+				logCtx.WithField("error", err).Error("Error during HandleGamble")
 			}
 		case "SUBMIT_QUIZ":
 			if err := gm.HandleQuiz(userID, req.Payload); err != nil {
-				log.Printf("Error during handleQuiz: %v", err)
+				logCtx.WithField("error", err).Error("Error during HandleQuiz")
 			}
 		default:
+			logCtx.Warn("Unknown request type")
 			_ = client.SendJSON(gin.H{ //TODO: sendErrorをつかうようにする
 				"type": "error", "code": "unknown_request", "message": "未対応のリクエストです",
 			})

@@ -9,6 +9,8 @@ import (
 )
 
 func (gm *GameManager) HandleMove(playerID string) error {
+	gm.mu.Lock()
+	defer gm.mu.Unlock()
 	diceRollResult := sugoroku.RollDice()
 	if err := gm.sendDiceRollResult(playerID, diceRollResult); err != nil {
 		return fmt.Errorf("failed to send dice result: %w", err)
@@ -22,6 +24,8 @@ func (gm *GameManager) HandleMove(playerID string) error {
 // SUBMIT_BRANCHリクエスト時に発火する関数。
 // 選んだタイルIDの方向へ移動させる。
 func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interface{}) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	player, err := m.game.GetPlayer(playerID)
 	if err != nil {
 		return fmt.Errorf("player %s not found", playerID)
@@ -61,6 +65,8 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 // ペイロードからbetとHigh or Lowを読み込みギャンブルを行う。
 // Gambleの結果をプレイヤーに返す。
 func (m *GameManager) HandleGamble(playerID string, payload map[string]interface{}) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	player, err := m.game.GetPlayer(playerID)
 	if err != nil {
 		return fmt.Errorf("player %s not found", playerID)
@@ -111,6 +117,8 @@ func (m *GameManager) HandleGamble(playerID string, payload map[string]interface
 // SUBMIT_QUIZリクエスト時に発火する関数。
 // ペイロードからクイズIDと答えを読み取る。
 func (m *GameManager) HandleQuiz(playerID string, payload map[string]interface{}) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	player, err := m.game.GetPlayer(playerID)
 	if err != nil {
 		return fmt.Errorf("player %s not found", playerID)
