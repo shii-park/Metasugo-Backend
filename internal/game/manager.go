@@ -135,6 +135,12 @@ func (gm *GameManager) UnregisterPlayerClient(playerID string, c *hub.Client) er
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
 
+	// 既に登録解除されていないか確認
+	if _, ok := gm.playerClients[playerID]; !ok {
+		log.WithField("playerID", playerID).Warn("Attempted to unregister an already unregistered player.")
+		return nil // 既に処理済みなのでエラーとしない
+	}
+
 	return gm.unregisterPlayerClientLocked(playerID, c)
 }
 

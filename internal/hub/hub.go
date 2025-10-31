@@ -53,23 +53,28 @@ func (h *Hub) Run() {
 
 		case client := <-h.unregister:
 			h.mu.Lock()
-			if _, ok := h.clients[client.PlayerID]; ok {
+			if c, ok := h.clients[client.PlayerID]; ok && c == client {
 				delete(h.clients, client.PlayerID)
 				close(client.Send)
-									log.WithField("playerID", client.PlayerID).Info("Client unregistered")			}
+				log.WithField("playerID", client.PlayerID).Info("Client unregistered")
+			}
 			h.mu.Unlock()
 
 		case message := <-h.broadcast:
 			h.mu.RLock()
+			clientsToUnregister := []*Client{}
 			for _, client := range h.clients {
 				select {
 				case client.Send <- message:
 				default:
-					close(client.Send)
-					delete(h.clients, client.PlayerID)
+					clientsToUnregister = append(clientsToUnregister, client)
 				}
 			}
 			h.mu.RUnlock()
+
+			for _, client := range clientsToUnregister {
+				h.unregister <- client
+			}
 		}
 	}
 }
