@@ -26,6 +26,10 @@ func SetupRoutes(router *gin.Engine, sg *sugoroku.Game) {
 	if err != nil {
 		log.WithError(err).Fatal("failed to create ranking handler")
 	}
+	bestScoreHandler, err := NewBestScoreHandler()
+	if err != nil {
+		log.Fatalf("MaxAmtHandlerの生成に失敗: %v", err)
+	}
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -47,5 +51,7 @@ func SetupRoutes(router *gin.Engine, sg *sugoroku.Game) {
 		authRequired.GET("/ranking", rankingHandler.GetRanking)
 		// タイルのルーティング
 		authRequired.GET("/tiles", TilesHandler)
+		//最高金額取得のルーティング
+		authRequired.GET("/bestscore", bestScoreHandler.GetBestScore)
 	}
 }
