@@ -167,7 +167,11 @@
     {
         "id": 15,  
         "kind": "setStatus",
-        "detail": "", 
+        "detail": "",
+        "effect":{
+            "type":"setStatus",
+            "status":""
+        },
         "prev_ids": [14], 
         "next_ids": [16]
     },
@@ -309,6 +313,10 @@
         "id": 27,  
         "kind": "setStatus", 
         "detail": "", 
+        "effect":{
+            "type":"setStatus",
+            "status":""
+        },
         "prev_ids": [14], 
         "next_ids": [28]
     },
