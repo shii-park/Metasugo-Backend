@@ -166,8 +166,12 @@
 
     {
         "id": 15,  
-        "kind": "normal", 
-        "detail": "", 
+        "kind": "setStatus",
+        "detail": "",
+        "effect":{
+            "type":"setStatus",
+            "status":""
+        },
         "prev_ids": [14], 
         "next_ids": [16]
     },
@@ -307,11 +311,11 @@
 
     {
         "id": 27,  
-        "kind": "normal", 
-        "detail": "忙しすぎるスケジュールで、身体よりも先にパソコンの方が限界を迎えてしまった…！？25万円失う", 
-        "effect": {
-            "type": "loss",
-            "amount": 250000
+        "kind": "setStatus", 
+        "detail": "", 
+        "effect":{
+            "type":"setStatus",
+            "status":""
         },
         "prev_ids": [14], 
         "next_ids": [28]
