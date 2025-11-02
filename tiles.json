@@ -323,7 +323,7 @@
         "detail": "予算申請が通り、欲しかった装置を購入できるお金をもらった！50万円もらう", 
         "effect": {
             "type": "profit", 
-            "amount": 50
+            "amount": 500000
         },
         "prev_ids": [27], 
         "next_ids": [29]
