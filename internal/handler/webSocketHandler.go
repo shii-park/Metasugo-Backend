@@ -26,8 +26,8 @@ type WebSocketHandler struct {
 }
 
 type wsRequest struct {
-	Type    string                 `json:"type"`
-	Payload map[string]interface{} `json:"payload"`
+	Type    string         `json:"type"`
+	Payload map[string]any `json:"payload"`
 }
 
 func NewWebSocketHandler(h *hub.Hub) *WebSocketHandler {
@@ -63,7 +63,7 @@ func (h *WebSocketHandler) HandleWebSocket(gm *game.GameManager) gin.HandlerFunc
 	}
 }
 
-func (h *WebSocketHandler) HandleGetTile(client *hub.Client, request map[string]interface{}) {
+func (h *WebSocketHandler) HandleGetTile(client *hub.Client, request map[string]any) {
 	tile, err := service.GetTiles()
 	if err != nil {
 		_ = client.SendJSON(gin.H{"type": "error", "message": "タイルの取得に失敗しました"})

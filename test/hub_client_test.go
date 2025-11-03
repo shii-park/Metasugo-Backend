@@ -15,7 +15,7 @@ func TestClientSendJSONBuffer(t *testing.T) {
 	succeeded := 0
 	var lastErr error
 	for i := 0; i < 300; i++ {
-		err := c.SendJSON(map[string]interface{}{"i": i})
+		err := c.SendJSON(map[string]any{"i": i})
 		if err == nil {
 			succeeded++
 		} else {

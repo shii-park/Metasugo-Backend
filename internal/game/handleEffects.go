@@ -21,7 +21,7 @@ func (gm *GameManager) HandleMove(playerID string) error {
 
 // SUBMIT_BRANCHリクエスト時に発火する関数。
 // 選んだタイルIDの方向へ移動させる。
-func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interface{}) error {
+func (m *GameManager) HandleBranch(playerID string, choiceData map[string]any) error {
 	player, err := m.game.GetPlayer(playerID)
 	if err != nil {
 		return fmt.Errorf("player %s not found", playerID)
@@ -60,7 +60,7 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 // SUBMIT_GAMBLEリクエスト時に発火する関数。
 // ペイロードからbetとHigh or Lowを読み込みギャンブルを行う。
 // Gambleの結果をプレイヤーに返す。
-func (m *GameManager) HandleGamble(playerID string, payload map[string]interface{}) error {
+func (m *GameManager) HandleGamble(playerID string, payload map[string]any) error {
 	player, err := m.game.GetPlayer(playerID)
 	if err != nil {
 		return fmt.Errorf("player %s not found", playerID)
@@ -91,7 +91,7 @@ func (m *GameManager) HandleGamble(playerID string, payload map[string]interface
 	}
 	finalMoney := player.Money
 
-	resultPayload := map[string]interface{}{
+	resultPayload := map[string]any{
 		"userID":     playerID,
 		"diceResult": diceResult,
 		"choice":     choice,
@@ -110,7 +110,7 @@ func (m *GameManager) HandleGamble(playerID string, payload map[string]interface
 
 // SUBMIT_QUIZリクエスト時に発火する関数。
 // ペイロードからクイズIDと答えを読み取る。
-func (m *GameManager) HandleQuiz(playerID string, payload map[string]interface{}) error {
+func (m *GameManager) HandleQuiz(playerID string, payload map[string]any) error {
 	player, err := m.game.GetPlayer(playerID)
 	if err != nil {
 		return fmt.Errorf("player %s not found", playerID)

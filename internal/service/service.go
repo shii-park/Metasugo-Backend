@@ -14,7 +14,7 @@ import (
 var (
 	loadOnce  sync.Once
 	loadErr   error
-	tilesData map[string]interface{}
+	tilesData map[string]any
 
 	firestoreClient *firestore.Client
 	firestoreOnce   sync.Once
@@ -50,7 +50,7 @@ func GetFirestoreClient() (*firestore.Client, error) {
 	return NewFirestoreClient()
 }
 
-func GetTiles() (interface{}, error) {
+func GetTiles() (any, error) {
 	loadOnce.Do(func() {
 		filePath := os.Getenv("TILES_JSON_PATH")
 		if filePath == "" {
@@ -63,7 +63,7 @@ func GetTiles() (interface{}, error) {
 			return
 		}
 		defer file.Close()
-		var m map[string]interface{}
+		var m map[string]any
 
 		decoder := json.NewDecoder(file)
 		if err = decoder.Decode(&m); err != nil {

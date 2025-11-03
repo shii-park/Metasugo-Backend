@@ -81,7 +81,7 @@ func TestAuthToken_NoAuthHeader(t *testing.T) {
 	}
 
 	// レスポンスボディの確認
-	var response map[string]interface{}
+	var response map[string]any
 	json.Unmarshal(w.Body.Bytes(), &response)
 	if response["error"] != "Authorization header required" {
 		t.Errorf("期待されるエラーメッセージと異なります: %v", response["error"])
@@ -108,7 +108,7 @@ func TestAuthToken_InvalidFormat(t *testing.T) {
 		t.Errorf("期待されるステータスコード: 401, 実際: %d", w.Code)
 	}
 
-	var response map[string]interface{}
+	var response map[string]any
 	json.Unmarshal(w.Body.Bytes(), &response)
 	if response["error"] != "Invalid authorization format" {
 		t.Errorf("期待されるエラーメッセージと異なります: %v", response["error"])
@@ -141,7 +141,7 @@ func TestAuthToken_InvalidToken(t *testing.T) {
 		t.Errorf("期待されるステータスコード: 401, 実際: %d", w.Code)
 	}
 
-	var response map[string]interface{}
+	var response map[string]any
 	json.Unmarshal(w.Body.Bytes(), &response)
 	if response["error"] != "Invalid token" {
 		t.Errorf("期待されるエラーメッセージと異なります: %v", response["error"])
@@ -189,7 +189,7 @@ func TestAuthToken_ValidToken(t *testing.T) {
 		t.Logf("レスポンス: %s", w.Body.String())
 	}
 
-	var response map[string]interface{}
+	var response map[string]any
 	json.Unmarshal(w.Body.Bytes(), &response)
 	if response["message"] != "success" {
 		t.Errorf("期待されるレスポンスと異なります: %v", response)

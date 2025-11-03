@@ -148,7 +148,7 @@ func (gm *GameManager) Goal(playerID string, c *hub.Client) error {
 	money := player.Money
 
 	// Firestoreに保存するデータを作成
-	data := map[string]interface{}{
+	data := map[string]any{
 		"playerID":   playerID,
 		"money":      money,
 		"finishedAt": time.Now(),

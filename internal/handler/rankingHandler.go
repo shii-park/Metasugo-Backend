@@ -31,7 +31,7 @@ func (h *RankingHandler) GetRanking(c *gin.Context) {
 	iter := h.firestore.Collection("playerClearData").OrderBy("money", firestore.Desc).Documents(ctx)
 	defer iter.Stop()
 
-	var players []map[string]interface{}
+	var players []map[string]any
 	for {
 		doc, err := iter.Next()
 		if err == iterator.Done {

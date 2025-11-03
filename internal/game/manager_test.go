@@ -46,15 +46,15 @@ func createAndRegisterClient(t *testing.T, gm *GameManager, hub *hub.Hub, player
 }
 
 // assertEventReceived はクライアントが特定のイベントを受信したことを表明します。
-func assertEventReceived(t *testing.T, client *hub.Client, expectedEventType string) map[string]interface{} {
+func assertEventReceived(t *testing.T, client *hub.Client, expectedEventType string) map[string]any {
 	select {
 	case msg := <-client.Send:
 		t.Logf("Received JSON: %s", msg)
-		var event map[string]interface{}
+		var event map[string]any
 		err := json.Unmarshal(msg, &event)
 		assert.NoError(t, err, "Failed to unmarshal event message")
 		assert.Equal(t, expectedEventType, event["type"], "Received event type mismatch")
-		payload, ok := event["payload"].(map[string]interface{})
+		payload, ok := event["payload"].(map[string]any)
 		assert.True(t, ok, "Payload is not a map")
 		return payload
 	case <-time.After(100 * time.Millisecond):
@@ -123,12 +123,12 @@ func TestGameManager_SendsQuizRequired(t *testing.T) {
 	// player1がQUIZ_REQUIREDイベントを受信することを確認
 	payload := assertEventReceived(t, player1, "QUIZ_REQUIRED")
 	assert.Equal(t, float64(3), payload["tileID"])
-	quizData, ok := payload["quizData"].(map[string]interface{})
+	quizData, ok := payload["quizData"].(map[string]any)
 	assert.True(t, ok)
 	assert.Equal(t, "1 + 1は？", quizData["question"])
-	options, ok := quizData["options"].([]interface{})
+	options, ok := quizData["options"].([]any)
 	assert.True(t, ok)
-	assert.ElementsMatch(t, []interface{}{"1", "2", "3", "4"}, options)
+	assert.ElementsMatch(t, []any{"1", "2", "3", "4"}, options)
 }
 
 func TestGameManager_SendsBranchChoiceRequired(t *testing.T) {
@@ -144,7 +144,7 @@ func TestGameManager_SendsBranchChoiceRequired(t *testing.T) {
 	// player1がBRANCH_CHOICE_REQUIREDイベントを受信することを確認
 	payload := assertEventReceived(t, player1, "BRANCH_CHOICE_REQUIRED")
 	assert.Equal(t, float64(4), payload["tileID"])
-	options, ok := payload["options"].([]interface{})
+	options, ok := payload["options"].([]any)
 	assert.True(t, ok)
-	assert.ElementsMatch(t, []interface{}{float64(5), float64(6)}, options)
+	assert.ElementsMatch(t, []any{float64(5), float64(6)}, options)
 }
