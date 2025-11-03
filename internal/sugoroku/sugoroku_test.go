@@ -50,7 +50,7 @@ func TestQuizEffect(t *testing.T) {
 
 	player.Position = quizTile
 
-	effect, ok := quizTile.effect.(QuizEffect)
+	effect, ok := quizTile.Effect.(QuizEffect)
 	assert.True(t, ok)
 
 	// Test GetOptions

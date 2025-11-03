@@ -14,8 +14,8 @@ func TestNewTile(t *testing.T) {
 	if tile == nil {
 		t.Fatal("NewTile returned nil")
 	}
-	if tile.id != 1 {
-		t.Errorf("Expected id to be 1, got %d", tile.id)
+	if tile.Id != 1 {
+		t.Errorf("Expected id to be 1, got %d", tile.Id)
 	}
 	if tile.kind != profit {
 		t.Errorf("Expected kind to be profit, got %s", tile.kind)
@@ -42,7 +42,7 @@ func TestInitTilesFromPath_HappyPath(t *testing.T) {
 	// Find tiles by ID for easier assertion, as order is not guaranteed.
 	tileMap := make(map[int]*Tile)
 	for _, tile := range tiles {
-		tileMap[tile.id] = tile
+		tileMap[tile.Id] = tile
 	}
 
 	tile1, ok1 := tileMap[1]
@@ -146,7 +146,7 @@ func TestInitTilesFromPath_AllCases(t *testing.T) {
 	// Find tiles by ID for easier assertion, as order is not guaranteed.
 	tileMap := make(map[int]*Tile)
 	for _, tile := range tiles {
-		tileMap[tile.id] = tile
+		tileMap[tile.Id] = tile
 	}
 
 	// Check kinds and effects
@@ -156,11 +156,11 @@ func TestInitTilesFromPath_AllCases(t *testing.T) {
 	if tileMap[8].kind != gamble {
 		t.Errorf("Expected tile 8 to be of kind 'gamble', got '%s'", tileMap[8].kind)
 	}
-	if _, ok := tileMap[9].effect.(NoEffect); !ok {
-		t.Errorf("Expected tile 9 (unknown type) to have a NoEffect, got %T", tileMap[9].effect)
+	if _, ok := tileMap[9].Effect.(NoEffect); !ok {
+		t.Errorf("Expected tile 9 (unknown type) to have a NoEffect, got %T", tileMap[9].Effect)
 	}
-	if _, ok := tileMap[10].effect.(NoEffect); !ok {
-		t.Errorf("Expected tile 10 (null effect) to have a NoEffect, got %T", tileMap[10].effect)
+	if _, ok := tileMap[10].Effect.(NoEffect); !ok {
+		t.Errorf("Expected tile 10 (null effect) to have a NoEffect, got %T", tileMap[10].Effect)
 	}
 
 	// Check links

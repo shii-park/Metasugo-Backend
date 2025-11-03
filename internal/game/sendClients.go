@@ -32,7 +32,7 @@ func (gm *GameManager) sendBranchSelection(player *sugoroku.Player, tile *sugoro
 	event := map[string]interface{}{
 		"type": "BRANCH_CHOICE_REQUIRED",
 		"payload": map[string]interface{}{
-			"tileID":  tile.GetID(),
+			"tileID":  tile.Id,
 			"options": options,
 		},
 	}
@@ -44,7 +44,7 @@ func (gm *GameManager) sendQuizInfo(player *sugoroku.Player, tile *sugoroku.Tile
 	event := map[string]interface{}{
 		"type": "QUIZ_REQUIRED",
 		"payload": map[string]interface{}{
-			"tileID":   tile.GetID(),
+			"tileID":   tile.Id,
 			"quizData": quizData,
 		},
 	}
@@ -56,7 +56,7 @@ func (gm *GameManager) sendGambleRequire(player *sugoroku.Player, tile *sugoroku
 	event := map[string]interface{}{
 		"type": "GAMBLE_REQUIRED",
 		"payload": map[string]interface{}{
-			"tileID":         tile.GetID(),
+			"tileID":         tile.Id,
 			"referenceValue": baseValue,
 		},
 	}

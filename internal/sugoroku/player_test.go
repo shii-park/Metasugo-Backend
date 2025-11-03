@@ -28,7 +28,7 @@ func TestPlayer_Money(t *testing.T) {
 }
 
 func TestPlayer_Getters(t *testing.T) {
-	tile := &Tile{id: 1}
+	tile := &Tile{Id: 1}
 	player := NewPlayer("test_id", tile)
 
 	assert.Equal(t, "test_id", player.Id)

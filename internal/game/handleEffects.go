@@ -28,12 +28,12 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 	}
 
 	// 適用前の状態を記録
-	initialPosition := player.Position.GetID()
+	initialPosition := player.Position.Id
 	initialMoney := player.Money
 
 	// 選択を適用
 	currentTile := player.Position
-	effect := currentTile.GetEffect()
+	effect := currentTile.Effect
 	choice := choiceData["selection"]
 
 	if err := effect.Apply(player, m.game, choice); err != nil {
@@ -41,13 +41,13 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 	}
 
 	// 適用後の最終的な状態を取得
-	finalPosition := player.Position.GetID()
+	finalPosition := player.Position.Id
 	finalMoney := player.Money
 
 	// 状態が変化していれば、全クライアントに通知
 	if initialPosition != finalPosition {
 		m.broadcastPlayerMoved(playerID, finalPosition)
-		log.Printf("PlayerMoved: %s moved to %d", playerID, player.Position.GetID())
+		log.Printf("PlayerMoved: %s moved to %d", playerID, player.Position.Id)
 
 	}
 	if initialMoney != finalMoney {
@@ -66,7 +66,7 @@ func (m *GameManager) HandleGamble(playerID string, payload map[string]interface
 		return fmt.Errorf("player %s not found", playerID)
 	}
 
-	effect := player.Position.GetEffect()
+	effect := player.Position.Effect
 
 	if err := effect.Apply(player, m.game, payload); err != nil {
 		return fmt.Errorf("failed to apply gamble choice: %w", err)
@@ -123,7 +123,7 @@ func (m *GameManager) HandleQuiz(playerID string, payload map[string]interface{}
 	}
 
 	currentTile := player.Position
-	effect := currentTile.GetEffect()
+	effect := currentTile.Effect
 
 	if err := effect.Apply(player, m.game, selection); err != nil {
 		return fmt.Errorf("failed to apply quiz choice: %w", err)

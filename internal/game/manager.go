@@ -40,7 +40,7 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	}
 
 	// 1. 移動前の状態を記録
-	initialPosition := player.Position.GetID()
+	initialPosition := player.Position.Id
 	initialMoney := player.Money
 	initialIsMarried := player.IsMarried
 	initialHasChildren := player.HasChildren
@@ -50,17 +50,17 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	flag := player.Move(steps) //めんどくさくなったのでフラグで実装してる。Effect型で比較するなどもっといいやり方はあると思う
 
 	// 効果を判定
-	log.Printf("PlayerMoved: %s moved to %d", playerID, player.Position.GetID())
+	log.Printf("PlayerMoved: %s moved to %d", playerID, player.Position.Id)
 	// 3. マス効果を判定・適用
 
-	finalPosition := player.Position.GetID()
+	finalPosition := player.Position.Id
 
 	if initialPosition != finalPosition {
 		gm.broadcastPlayerMoved(playerID, finalPosition)
 	}
 
 	currentTile := player.Position
-	effect := currentTile.GetEffect()
+	effect := currentTile.Effect
 
 	if effect.RequiresUserInput() || flag == "GOAL" {
 		// ユーザからの入力が必要な場合、もしくはゴールの場合こちらで処理

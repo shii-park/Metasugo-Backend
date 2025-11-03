@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-type Effect interface {
+type EffectType interface {
 	Apply(player *Player, game *Game, choice any) error // 効果の適用
 	RequiresUserInput() bool                            // ユーザからの入力が必要かどうか
 	GetOptions(tile *Tile) any                          // ユーザの入力の選択肢
@@ -128,7 +128,7 @@ func (e BranchEffect) RequiresUserInput() bool { return true }
 func (e BranchEffect) GetOptions(tile *Tile) any {
 	options := make([]int, len(tile.nexts))
 	for i, nextTile := range tile.nexts {
-		options[i] = nextTile.id
+		options[i] = nextTile.Id
 	}
 	return options
 }
@@ -149,7 +149,7 @@ func (e BranchEffect) Apply(p *Player, g *Game, choice any) error {
 	// 選択肢が現在の分岐マスの次のタイルとして有効か検証する
 	isValidChoice := false
 	for _, nextTile := range p.Position.nexts {
-		if nextTile.GetID() == chosenTileID {
+		if nextTile.Id == chosenTileID {
 			isValidChoice = true
 			break
 		}
@@ -388,7 +388,7 @@ func (e GoalEffect) Apply(p *Player, g *Game, choice any) error {
 	return nil
 }
 
-func CreateEffectFromJSON(data json.RawMessage) (Effect, error) {
+func CreateEffectFromJSON(data json.RawMessage) (EffectType, error) {
 	var ewt effectWithType
 	if err := json.Unmarshal(data, &ewt); err != nil {
 		return nil, fmt.Errorf("effect type unmarshal error: %w", err)
