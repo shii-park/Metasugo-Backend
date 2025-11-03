@@ -19,7 +19,7 @@ type Player struct {
 	Money       int
 	mu          sync.Mutex
 	IsMarried   bool
-	HasChildren bool
+	HasChildren int
 	Job         string
 }
 
@@ -114,8 +114,13 @@ func (p *Player) marry() {
 }
 
 // プレイヤーに子供を授けるメソッド
-func (p *Player) haveChildren() {
-	p.HasChildren = true
+func (p *Player) haveChild() {
+	p.HasChildren++
+}
+
+// プレイヤーの子供の数を変更するメソッド
+func (p *Player) changeChildren(amount int) {
+	p.HasChildren += amount
 }
 
 // プレイヤーの職業を設定するメソッド

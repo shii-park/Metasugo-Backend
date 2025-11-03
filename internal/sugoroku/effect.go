@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
+	"time"
 )
 
 type EffectType interface {
@@ -75,6 +77,9 @@ func (e QuizEffect) RequiresUserInput() bool { return true }
 
 // クイズIDからクイズを取ってきて、そのクイズを返す
 func (e QuizEffect) GetOptions(tile *Tile) any {
+	if e.QuizID == 0 {
+		return GetRandomQuiz()
+	}
 	for _, quiz := range quizzes {
 		if quiz.ID == e.QuizID {
 			return quiz
@@ -85,20 +90,26 @@ func (e QuizEffect) GetOptions(tile *Tile) any {
 
 // クイズの実際の処理
 func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
-	// テスト時にfloat64型でもらうため、int型に変換している
-	var selectedOptionIndex int
-	switch v := choice.(type) {
-	case int:
-		selectedOptionIndex = v
-	case float64:
-		selectedOptionIndex = int(v)
-	default:
-		return fmt.Errorf("invalid choice for quiz: unexpected type %T", v)
+	choiceMap, ok := choice.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("invalid choice for quiz: unexpected type %T", choice)
 	}
+
+	quizIDFloat, ok := choiceMap["quizID"].(float64)
+	if !ok {
+		return errors.New("quizID not found or is not a number in choice")
+	}
+	quizID := int(quizIDFloat)
+
+	selectionFloat, ok := choiceMap["selection"].(float64)
+	if !ok {
+		return errors.New("selection not found or is not a number in choice")
+	}
+	selectedOptionIndex := int(selectionFloat)
 
 	var targetQuiz *Quiz
 	for i := range quizzes {
-		if quizzes[i].ID == e.QuizID {
+		if quizzes[i].ID == quizID {
 			targetQuiz = &quizzes[i]
 			break
 		}
@@ -115,6 +126,15 @@ func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
 	}
 
 	return nil
+}
+
+func GetRandomQuiz() *Quiz {
+	if len(quizzes) == 0 {
+		return nil
+	}
+	rand.Seed(time.Now().UnixNano())
+	randomIndex := rand.Intn(len(quizzes))
+	return &quizzes[randomIndex]
 }
 
 // 分かれ道マス
@@ -275,7 +295,7 @@ func (e ConditionalEffect) Apply(p *Player, g *Game, choice any) error {
 	case "isMarried":
 		conditionMet = p.IsMarried
 	case "hasChildren":
-		conditionMet = p.HasChildren
+		conditionMet = p.HasChildren > 0
 	case "isProfessor":
 		conditionMet = p.Job == JobProfessor
 	case "isLecturer":
@@ -365,13 +385,21 @@ func (e SetStatusEffect) Apply(p *Player, g *Game, choice any) error {
 		if val, ok := e.Value.(bool); ok && val {
 			p.marry()
 		}
-	case "hasChildren":
-		if val, ok := e.Value.(bool); ok && val {
-			p.haveChildren()
+	case "children":
+		if val, ok := e.Value.(float64); ok {
+			p.changeChildren(int(val))
 		}
 	case "job":
 		if val, ok := e.Value.(string); ok {
 			p.setJob(val)
+		}
+	case "isProfessor":
+		if val, ok := e.Value.(bool); ok && val {
+			p.setJob(JobProfessor)
+		}
+	case "isLecturer":
+		if val, ok := e.Value.(bool); ok && val {
+			p.setJob(JobLecturer)
 		}
 	default:
 		return fmt.Errorf("unknown status to set: %s", e.Status)
@@ -388,10 +416,41 @@ func (e GoalEffect) Apply(p *Player, g *Game, choice any) error {
 	return nil
 }
 
+// 子供の人数に応じて効果を適用するマス
+type ChildBonusEffect struct {
+	ProfitAmountPerChild int `json:"profit_amount_per_child,omitempty"`
+	LossAmountPerChild   int `json:"loss_amount_per_child,omitempty"`
+}
+
+func (e ChildBonusEffect) RequiresUserInput() bool { return false }
+
+func (e ChildBonusEffect) GetOptions(tile *Tile) any { return nil }
+
+func (e ChildBonusEffect) Apply(p *Player, g *Game, choice any) error {
+	children := p.HasChildren
+	if children == 0 {
+		return nil
+	}
+
+	if e.ProfitAmountPerChild > 0 {
+		amount := children * e.ProfitAmountPerChild
+		return p.Profit(amount)
+	} else if e.LossAmountPerChild > 0 {
+		amount := children * e.LossAmountPerChild
+		return p.Loss(amount)
+	}
+
+	return nil
+}
+
 func CreateEffectFromJSON(data json.RawMessage) (EffectType, error) {
 	var ewt effectWithType
 	if err := json.Unmarshal(data, &ewt); err != nil {
 		return nil, fmt.Errorf("effect type unmarshal error: %w", err)
+	}
+
+	if ewt.Type == "" {
+		return nil, errors.New("effect type is missing")
 	}
 
 	switch ewt.Type {
@@ -453,6 +512,12 @@ func CreateEffectFromJSON(data json.RawMessage) (EffectType, error) {
 			return nil, fmt.Errorf("SetStatusEffect unmarshal error: %w", err)
 		}
 		return setStatusEffect, nil
+	case childBonus:
+		var childBonusEffect ChildBonusEffect
+		if err := json.Unmarshal(data, &childBonusEffect); err != nil {
+			return nil, fmt.Errorf("ChildBonusEffect unmarshal error: %w", err)
+		}
+		return childBonusEffect, nil
 	default:
 		return NoEffect{}, nil
 	}

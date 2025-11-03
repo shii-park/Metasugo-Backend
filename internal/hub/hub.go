@@ -5,10 +5,10 @@ package hub
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/gorilla/websocket"
+	log "github.com/sirupsen/logrus"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
@@ -49,28 +49,32 @@ func (h *Hub) Run() {
 			h.mu.Lock()
 			h.clients[client.PlayerID] = client
 			h.mu.Unlock()
-			fmt.Printf("Client registered: %s\n", client.PlayerID)
+			log.WithField("playerID", client.PlayerID).Info("Client registered")
 
 		case client := <-h.unregister:
 			h.mu.Lock()
-			if _, ok := h.clients[client.PlayerID]; ok {
+			if c, ok := h.clients[client.PlayerID]; ok && c == client {
 				delete(h.clients, client.PlayerID)
 				close(client.Send)
-				fmt.Printf("Client unregistered: %s\n", client.PlayerID)
+				log.WithField("playerID", client.PlayerID).Info("Client unregistered")
 			}
 			h.mu.Unlock()
 
 		case message := <-h.broadcast:
 			h.mu.RLock()
+			clientsToUnregister := []*Client{}
 			for _, client := range h.clients {
 				select {
 				case client.Send <- message:
 				default:
-					close(client.Send)
-					delete(h.clients, client.PlayerID)
+					clientsToUnregister = append(clientsToUnregister, client)
 				}
 			}
 			h.mu.RUnlock()
+
+			for _, client := range clientsToUnregister {
+				h.unregister <- client
+			}
 		}
 	}
 }
@@ -88,7 +92,7 @@ func (h *Hub) Unregister(client *Client) {
 func (h *Hub) Broadcast(message any) {
 	rawMessage, err := json.Marshal(message)
 	if err != nil {
-		log.Printf("error: could not marshal broadcast message: %v", err)
+		log.WithError(err).Error("could not marshal broadcast message")
 		return
 	}
 	h.broadcast <- rawMessage

@@ -148,3 +148,29 @@ func TestGameManager_SendsBranchChoiceRequired(t *testing.T) {
 	assert.True(t, ok)
 	assert.ElementsMatch(t, []any{float64(5), float64(6)}, options)
 }
+
+func TestHandleBranch_Effect(t *testing.T) {
+	tilePath := getTestFilePath(t, "test/branch_effect_test_tiles.json")
+	gm, h := setupTestEnvironment(t, tilePath)
+
+	playerID := "player1"
+	_ = createAndRegisterClient(t, gm, h, playerID)
+
+	player, err := gm.game.GetPlayer(playerID)
+	assert.NoError(t, err)
+
+	// Manually set player position to the branch tile
+	branchTile, err := gm.game.GetTile(1)
+	assert.NoError(t, err)
+	player.Position = branchTile
+
+	initialMoney := player.Money
+
+	// Handle the branch choice
+	choice := map[string]interface{}{"selection": 2}
+	err = gm.HandleBranch(playerID, choice)
+	assert.NoError(t, err)
+
+	// Check that the player's money has increased
+	assert.Equal(t, initialMoney+100, player.Money)
+}
