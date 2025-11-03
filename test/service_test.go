@@ -12,12 +12,12 @@ func TestGetTiles(t *testing.T) {
 		t.Fatalf("GetTiles returned error: %v", err)
 	}
 	switch v := tiles.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		if len(v) == 0 {
 			t.Fatalf("tiles map is empty")
 		}
 		t.Logf("loaded %d top-level keys", len(v))
-	case []interface{}:
+	case []any:
 		if len(v) == 0 {
 			t.Fatalf("tiles array is empty")
 		}

@@ -47,11 +47,11 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	}
 
 	// 1. 移動前の状態を記録
-	initialPosition := player.GetPosition().GetID()
-	initialMoney := player.GetMoney()
-	initialIsMarried := player.GetIsMarried()
-	initialChildren := player.GetChildren()
-	initialJob := player.GetJob()
+	initialPosition := player.Position.Id
+	initialMoney := player.Money
+	initialIsMarried := player.IsMarried
+	initialHasChildren := player.HasChildren
+	initialJob := player.Job
 
 	// 2. プレイヤーを移動させる
 	flag := player.Move(steps) //めんどくさくなったのでフラグで実装してる。Effect型で比較するなどもっといいやり方はあると思う
@@ -59,18 +59,18 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	// 効果を判定
 	log.WithFields(log.Fields{
 		"playerID":    playerID,
-		"newPosition": player.GetPosition().GetID(),
+		"newPosition": player.Position.Id,
 	}).Info("Player moved")
 	// 3. マス効果を判定・適用
 
-	finalPosition := player.GetPosition().GetID()
+	finalPosition := player.Position.Id
 
 	if initialPosition != finalPosition {
 		gm.broadcastPlayerMoved(playerID, finalPosition)
 	}
 
-	currentTile := player.GetPosition()
-	effect := currentTile.GetEffect()
+	currentTile := player.Position
+	effect := currentTile.Effect
 
 	if effect.RequiresUserInput() || flag == "GOAL" {
 		// ユーザからの入力が必要な場合、もしくはゴールの場合こちらで処理
@@ -97,22 +97,22 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	}
 
 	// 4. ステータスの変更を検知して通知
-	finalMoney := player.GetMoney()
+	finalMoney := player.Money
 	if initialMoney != finalMoney {
 		gm.broadcastMoneyChanged(playerID, finalMoney)
 	}
 
-	finalIsMarried := player.GetIsMarried()
+	finalIsMarried := player.IsMarried
 	if initialIsMarried != finalIsMarried {
 		gm.broadcastPlayerStatusChanged(playerID, "isMarried", finalIsMarried)
 	}
 
-	finalChildren := player.GetChildren()
-	if initialChildren != finalChildren {
-		gm.broadcastPlayerStatusChanged(playerID, "children", finalChildren)
+	finalHasChildren := player.HasChildren
+	if initialHasChildren != finalHasChildren {
+		gm.broadcastPlayerStatusChanged(playerID, "hasChildren", finalHasChildren)
 	}
 
-	finalJob := player.GetJob()
+	finalJob := player.Job
 	if initialJob != finalJob {
 		gm.broadcastPlayerStatusChanged(playerID, "job", finalJob)
 	}
@@ -126,9 +126,9 @@ func (gm *GameManager) GetAllPlayerStatuses() map[string]map[string]interface{} 
 
 	statuses := make(map[string]map[string]interface{})
 	for _, player := range gm.game.GetAllPlayers() {
-		statuses[player.GetID()] = map[string]interface{}{
-			"money":    player.GetMoney(),
-			"position": player.GetPosition().GetID(),
+		statuses[player.Id] = map[string]interface{}{
+			"money":    player.Money,
+			"position": player.Position.Id,
 		}
 	}
 	return statuses
@@ -192,7 +192,7 @@ func (gm *GameManager) Goal(playerID string, c *hub.Client) error {
 		log.WithError(err).Error("failed to get player in Goal")
 		return fmt.Errorf("failed to get player: %w", err)
 	}
-	money := player.GetMoney()
+	money := player.Money
 	log.WithFields(log.Fields{"playerID": playerID, "money": money}).Info("Player retrieved successfully")
 
 	fmt.Printf("%s goal!!!!!!!", playerID)

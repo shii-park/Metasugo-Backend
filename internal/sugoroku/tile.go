@@ -7,18 +7,18 @@ import (
 )
 
 const (
-	profit   TileKind = "profit"
-	loss     TileKind = "loss"
-	quiz     TileKind = "quiz"
-	branch   TileKind = "branch"
-	overall  TileKind = "overall"
-	neighbor TileKind = "neighbor"
-	require  TileKind = "require"
-	gamble   TileKind = "gamble"
-	goal     TileKind = "goal"
+	profit      TileKind = "profit"
+	loss        TileKind = "loss"
+	quiz        TileKind = "quiz"
+	branch      TileKind = "branch"
+	overall     TileKind = "overall"
+	neighbor    TileKind = "neighbor"
+	require     TileKind = "require"
+	gamble      TileKind = "gamble"
+	goal        TileKind = "goal"
 	conditional TileKind = "conditional"
-	setStatus TileKind = "setStatus"
-	childBonus TileKind = "childBonus"
+	setStatus   TileKind = "setStatus"
+	childBonus  TileKind = "childBonus"
 )
 
 const TilesJSONPath = "./tiles.json"
@@ -29,8 +29,8 @@ type Tile struct {
 	prevs  []*Tile
 	nexts  []*Tile
 	kind   TileKind
-	id     int
-	effect Effect
+	Id     int
+	Effect EffectType
 	detail string
 }
 
@@ -44,8 +44,6 @@ type TileJSON struct {
 	NextIDs []int           `json:"next_ids"`
 }
 
-
-
 //                                            __                                      __
 //                                           |  \                                    |  \
 //   _______   ______   _______    _______  _| $$_     ______   __    __   _______  _| $$_     ______    ______
@@ -58,13 +56,13 @@ type TileJSON struct {
 //
 
 // TODO: 完全コンストラクタ化を行うべき
-func NewTile(prevs []*Tile, nexts []*Tile, kind TileKind, id int, effect Effect, detail string) *Tile {
+func NewTile(prevs []*Tile, nexts []*Tile, kind TileKind, id int, effect EffectType, detail string) *Tile {
 	return &Tile{
 		prevs:  prevs,
 		nexts:  nexts,
 		kind:   kind,
-		id:     id,
-		effect: effect,
+		Id:     id,
+		Effect: effect,
 		detail: detail,
 	}
 }
@@ -105,7 +103,7 @@ func InitTilesFromPath(path string) (map[int]*Tile, error) {
 
 	// タイルを生成(この時点ではタイル同士はつながっていない)
 	for _, tj := range tilesJSON {
-		var effect Effect
+		var effect EffectType
 		var err error
 		// Effectによるマスインスタンス生成の分岐
 		if len(tj.Effect) > 0 && string(tj.Effect) != "null" && string(tj.Effect) != "{}" {
@@ -118,7 +116,7 @@ func InitTilesFromPath(path string) (map[int]*Tile, error) {
 		}
 
 		tile := NewTile(nil, nil, tj.Kind, tj.ID, effect, tj.Detail)
-		tileMap[tile.id] = tile
+		tileMap[tile.Id] = tile
 	}
 
 	for _, tj := range tilesJSON {
@@ -134,12 +132,4 @@ func InitTilesFromPath(path string) (map[int]*Tile, error) {
 	}
 
 	return tileMap, nil
-}
-
-func (t *Tile) GetEffect() Effect {
-	return t.effect
-}
-
-func (t *Tile) GetID() int {
-	return t.id
 }

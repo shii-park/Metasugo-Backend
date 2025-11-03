@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type Effect interface {
+type EffectType interface {
 	Apply(player *Player, game *Game, choice any) error // 効果の適用
 	RequiresUserInput() bool                            // ユーザからの入力が必要かどうか
 	GetOptions(tile *Tile) any                          // ユーザの入力の選択肢
@@ -107,6 +107,18 @@ func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
 	}
 	selectedOptionIndex := int(selectionFloat)
 
+	quizIDFloat, ok := choiceMap["quizID"].(float64)
+	if !ok {
+		return errors.New("quizID not found or is not a number in choice")
+	}
+	quizID := int(quizIDFloat)
+
+	selectionFloat, ok := choiceMap["selection"].(float64)
+	if !ok {
+		return errors.New("selection not found or is not a number in choice")
+	}
+	selectedOptionIndex := int(selectionFloat)
+
 	var targetQuiz *Quiz
 	for i := range quizzes {
 		if quizzes[i].ID == quizID {
@@ -148,7 +160,7 @@ func (e BranchEffect) RequiresUserInput() bool { return true }
 func (e BranchEffect) GetOptions(tile *Tile) any {
 	options := make([]int, len(tile.nexts))
 	for i, nextTile := range tile.nexts {
-		options[i] = nextTile.id
+		options[i] = nextTile.Id
 	}
 	return options
 }
@@ -168,8 +180,8 @@ func (e BranchEffect) Apply(p *Player, g *Game, choice any) error {
 
 	// 選択肢が現在の分岐マスの次のタイルとして有効か検証する
 	isValidChoice := false
-	for _, nextTile := range p.GetPosition().nexts {
-		if nextTile.GetID() == chosenTileID {
+	for _, nextTile := range p.Position.nexts {
+		if nextTile.Id == chosenTileID {
 			isValidChoice = true
 			break
 		}
@@ -186,7 +198,7 @@ func (e BranchEffect) Apply(p *Player, g *Game, choice any) error {
 		return errors.New("chosen tile does not exist")
 	}
 
-	p.position = nextTile
+	p.Position = nextTile
 	return nil
 }
 
@@ -207,7 +219,7 @@ func (e OverallEffect) Apply(p *Player, g *Game, choice any) error {
 	//自分以外のプレイヤーを取得する
 	otherPlayers := make([]*Player, 0, len(allPlayers)-1)
 	for _, player := range allPlayers {
-		if player.id != p.id {
+		if player.Id != p.Id {
 			otherPlayers = append(otherPlayers, player)
 		}
 	}
@@ -293,13 +305,13 @@ func (e ConditionalEffect) Apply(p *Player, g *Game, choice any) error {
 	var conditionMet bool
 	switch e.Condition {
 	case "isMarried":
-		conditionMet = p.GetIsMarried()
-	case "children":
-		conditionMet = p.GetChildren() > 0
+		conditionMet = p.IsMarried
+	case "hasChildren":
+		conditionMet = p.HasChildren > 0
 	case "isProfessor":
-		conditionMet = p.GetJob() == JobProfessor
+		conditionMet = p.Job == JobProfessor
 	case "isLecturer":
-		conditionMet = p.GetJob() == JobLecturer
+		conditionMet = p.Job == JobLecturer
 	default:
 		return fmt.Errorf("unknown condition: %s", e.Condition)
 	}
@@ -331,7 +343,7 @@ func (e GambleEffect) GetOptions(tile *Tile) any { return nil }
 // ギャンブルの入力の有効か検証している
 // 本当はここにギャンブルの処理を書いて、returnでギャンブル結果を返したほうが良いのだろうが、時間がなかったので呼び出し先でギャンブルの判定を行っている。TODO: リファクタリングが必要
 func (e GambleEffect) Apply(p *Player, g *Game, choice any) error {
-	userInput, ok := choice.(map[string]interface{})
+	userInput, ok := choice.(map[string]any)
 	if !ok {
 		return errors.New("invalid input format for gamble")
 	}
@@ -427,7 +439,7 @@ func (e ChildBonusEffect) RequiresUserInput() bool { return false }
 func (e ChildBonusEffect) GetOptions(tile *Tile) any { return nil }
 
 func (e ChildBonusEffect) Apply(p *Player, g *Game, choice any) error {
-	children := p.GetChildren()
+	children := p.HasChildren
 	if children == 0 {
 		return nil
 	}
@@ -443,7 +455,7 @@ func (e ChildBonusEffect) Apply(p *Player, g *Game, choice any) error {
 	return nil
 }
 
-func CreateEffectFromJSON(data json.RawMessage) (Effect, error) {
+func CreateEffectFromJSON(data json.RawMessage) (EffectType, error) {
 	var ewt effectWithType
 	if err := json.Unmarshal(data, &ewt); err != nil {
 		return nil, fmt.Errorf("effect type unmarshal error: %w", err)

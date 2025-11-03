@@ -17,7 +17,12 @@ import (
 var (
 	loadOnce  sync.Once
 	loadErr   error
-	tilesData map[string]interface{}
+	tilesData map[string]any
+
+	// --- Firebase 関連の変数を整理 ---
+	firebaseApp *firebase.App
+	appOnce     sync.Once
+	appErr      error
 
 	// --- Firebase 関連の変数を整理 ---
 	firebaseApp *firebase.App
@@ -141,7 +146,7 @@ func GetTiles() (interface{}, error) {
 			return
 		}
 		defer file.Close()
-		var m map[string]interface{}
+		var m map[string]any
 
 		decoder := json.NewDecoder(file)
 		if err = decoder.Decode(&m); err != nil {

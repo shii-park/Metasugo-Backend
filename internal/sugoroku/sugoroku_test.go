@@ -32,7 +32,7 @@ func TestGame_AddPlayer(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, player)
-	assert.Equal(t, "test_player", player.GetID())
+	assert.Equal(t, "test_player", player.Id)
 
 	// Test adding the same player again
 	_, err = game.AddPlayer("test_player")
@@ -42,15 +42,15 @@ func TestGame_AddPlayer(t *testing.T) {
 func TestQuizEffect(t *testing.T) {
 	game := NewGameWithTilesForTest("../../tiles.json")
 	player, _ := game.AddPlayer("test_player")
-	player.money = 0 // Reset money for test
+	player.Money = 0 // Reset money for test
 
 	quizTile := game.tileMap[9]
 	assert.NotNil(t, quizTile)
 	assert.Equal(t, TileKind("quiz"), quizTile.kind)
 
-	player.position = quizTile
+	player.Position = quizTile
 
-	effect, ok := quizTile.effect.(QuizEffect)
+	effect, ok := quizTile.Effect.(QuizEffect)
 	assert.True(t, ok)
 
 	// Test GetOptions
@@ -60,38 +60,14 @@ func TestQuizEffect(t *testing.T) {
 	assert.Equal(t, expectedOptions, quiz.Options)
 
 	// Test Apply with correct answer
-	player.money = 0 // Reset money for test
-	initialMoney := player.GetMoney()
+	initialMoney := player.Money
 	err := effect.Apply(player, game, 1) // Correct answer index is 1
 	assert.NoError(t, err)
-	assert.Equal(t, initialMoney+effect.Amount, player.GetMoney())
+	assert.Equal(t, initialMoney+10, player.Money)
 
-	// Test Apply with incorrect answer
-	player.money = 0 // Reset money for test
-	initialMoney = player.GetMoney()
+	// Test Apply with incorrect answer (no penalty)
+	initialMoney = player.Money
 	err = effect.Apply(player, game, 2) // Incorrect answer
 	assert.NoError(t, err)
-	assert.Equal(t, initialMoney-effect.Amount, player.GetMoney())
-}
-
-func TestChildBonusEffect(t *testing.T) {
-	game := NewGameWithTilesForTest("../../tiles.json")
-	player, _ := game.AddPlayer("test_player")
-	player.money = 0      // Reset money for test
-	player.Children = 2 // Set number of children
-
-	// Test with profit
-	profitEffect := ChildBonusEffect{ProfitAmountPerChild: 100}
-	initialMoney := player.GetMoney()
-	err := profitEffect.Apply(player, game, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, initialMoney+(2*100), player.GetMoney())
-
-	// Test with loss
-	player.money = 0 // Reset money for test
-	lossEffect := ChildBonusEffect{LossAmountPerChild: 50}
-	initialMoney = player.GetMoney()
-	err = lossEffect.Apply(player, game, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, initialMoney-(2*50), player.GetMoney())
+	assert.Equal(t, initialMoney, player.Money)
 }

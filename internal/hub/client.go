@@ -94,7 +94,7 @@ func (c *Client) WritePump() {
 	}
 }
 
-func (c *Client) SendJSON(v interface{}) error {
+func (c *Client) SendJSON(v any) error {
 	if c == nil || c.Send == nil {
 		return errors.New("invalid client")
 	}
@@ -114,7 +114,7 @@ func (c *Client) SendError(err error) error { //TODO: 引数の修正
 	if c == nil || err == nil {
 		return nil
 	}
-	payload := map[string]interface{}{
+	payload := map[string]any{
 		"type":    "error",
 		"message": err.Error(),
 		"ts":      time.Now().Unix(),
