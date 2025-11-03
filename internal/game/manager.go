@@ -40,26 +40,26 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	}
 
 	// 1. 移動前の状態を記録
-	initialPosition := player.GetPosition().GetID()
-	initialMoney := player.GetMoney()
-	initialIsMarried := player.GetIsMarried()
-	initialHasChildren := player.GetHasChildren()
-	initialJob := player.GetJob()
+	initialPosition := player.Position.GetID()
+	initialMoney := player.Money
+	initialIsMarried := player.IsMarried
+	initialHasChildren := player.HasChildren
+	initialJob := player.Job
 
 	// 2. プレイヤーを移動させる
 	flag := player.Move(steps) //めんどくさくなったのでフラグで実装してる。Effect型で比較するなどもっといいやり方はあると思う
 
 	// 効果を判定
-	log.Printf("PlayerMoved: %s moved to %d", playerID, player.GetPosition().GetID())
+	log.Printf("PlayerMoved: %s moved to %d", playerID, player.Position.GetID())
 	// 3. マス効果を判定・適用
 
-	finalPosition := player.GetPosition().GetID()
+	finalPosition := player.Position.GetID()
 
 	if initialPosition != finalPosition {
 		gm.broadcastPlayerMoved(playerID, finalPosition)
 	}
 
-	currentTile := player.GetPosition()
+	currentTile := player.Position
 	effect := currentTile.GetEffect()
 
 	if effect.RequiresUserInput() || flag == "GOAL" {
@@ -87,22 +87,22 @@ func (gm *GameManager) MoveByDiceRoll(playerID string, steps int) error {
 	}
 
 	// 4. ステータスの変更を検知して通知
-	finalMoney := player.GetMoney()
+	finalMoney := player.Money
 	if initialMoney != finalMoney {
 		gm.broadcastMoneyChanged(playerID, finalMoney)
 	}
 
-	finalIsMarried := player.GetIsMarried()
+	finalIsMarried := player.IsMarried
 	if initialIsMarried != finalIsMarried {
 		gm.broadcastPlayerStatusChanged(playerID, "isMarried", finalIsMarried)
 	}
 
-	finalHasChildren := player.GetHasChildren()
+	finalHasChildren := player.HasChildren
 	if initialHasChildren != finalHasChildren {
 		gm.broadcastPlayerStatusChanged(playerID, "hasChildren", finalHasChildren)
 	}
 
-	finalJob := player.GetJob()
+	finalJob := player.Job
 	if initialJob != finalJob {
 		gm.broadcastPlayerStatusChanged(playerID, "job", finalJob)
 	}
@@ -145,7 +145,7 @@ func (gm *GameManager) Goal(playerID string, c *hub.Client) error {
 	if err != nil {
 		return fmt.Errorf("failed to get player: %w", err)
 	}
-	money := player.GetMoney()
+	money := player.Money
 
 	// Firestoreに保存するデータを作成
 	data := map[string]interface{}{

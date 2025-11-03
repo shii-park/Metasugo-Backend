@@ -28,11 +28,11 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 	}
 
 	// 適用前の状態を記録
-	initialPosition := player.GetPosition().GetID()
-	initialMoney := player.GetMoney()
+	initialPosition := player.Position.GetID()
+	initialMoney := player.Money
 
 	// 選択を適用
-	currentTile := player.GetPosition()
+	currentTile := player.Position
 	effect := currentTile.GetEffect()
 	choice := choiceData["selection"]
 
@@ -41,13 +41,13 @@ func (m *GameManager) HandleBranch(playerID string, choiceData map[string]interf
 	}
 
 	// 適用後の最終的な状態を取得
-	finalPosition := player.GetPosition().GetID()
-	finalMoney := player.GetMoney()
+	finalPosition := player.Position.GetID()
+	finalMoney := player.Money
 
 	// 状態が変化していれば、全クライアントに通知
 	if initialPosition != finalPosition {
 		m.broadcastPlayerMoved(playerID, finalPosition)
-		log.Printf("PlayerMoved: %s moved to %d", playerID, player.GetPosition().GetID())
+		log.Printf("PlayerMoved: %s moved to %d", playerID, player.Position.GetID())
 
 	}
 	if initialMoney != finalMoney {
@@ -66,7 +66,7 @@ func (m *GameManager) HandleGamble(playerID string, payload map[string]interface
 		return fmt.Errorf("player %s not found", playerID)
 	}
 
-	effect := player.GetPosition().GetEffect()
+	effect := player.Position.GetEffect()
 
 	if err := effect.Apply(player, m.game, payload); err != nil {
 		return fmt.Errorf("failed to apply gamble choice: %w", err)
@@ -76,7 +76,7 @@ func (m *GameManager) HandleGamble(playerID string, payload map[string]interface
 	bet := int(payload["bet"].(float64))
 	choice := payload["choice"].(string)
 
-	initialMoney := player.GetMoney()
+	initialMoney := player.Money
 
 	diceResult := sugoroku.RollDice()
 	isHigh := diceResult >= baseValue
@@ -89,7 +89,7 @@ func (m *GameManager) HandleGamble(playerID string, payload map[string]interface
 	} else {
 		player.Loss(amount)
 	}
-	finalMoney := player.GetMoney()
+	finalMoney := player.Money
 
 	resultPayload := map[string]interface{}{
 		"userID":     playerID,
@@ -115,21 +115,21 @@ func (m *GameManager) HandleQuiz(playerID string, payload map[string]interface{}
 	if err != nil {
 		return fmt.Errorf("player %s not found", playerID)
 	}
-	initialMoney := player.GetMoney()
+	initialMoney := player.Money
 
 	selection, ok := payload["selection"]
 	if !ok {
 		return errors.New("selection not found in payload")
 	}
 
-	currentTile := player.GetPosition()
+	currentTile := player.Position
 	effect := currentTile.GetEffect()
 
 	if err := effect.Apply(player, m.game, selection); err != nil {
 		return fmt.Errorf("failed to apply quiz choice: %w", err)
 	}
 
-	finalMoney := player.GetMoney()
+	finalMoney := player.Money
 
 	if initialMoney != finalMoney {
 		m.broadcastMoneyChanged(playerID, finalMoney)

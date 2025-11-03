@@ -36,7 +36,7 @@ func (gm *GameManager) sendBranchSelection(player *sugoroku.Player, tile *sugoro
 			"options": options,
 		},
 	}
-	return gm.hub.SendToPlayer(player.GetID(), event)
+	return gm.hub.SendToPlayer(player.Id, event)
 }
 
 func (gm *GameManager) sendQuizInfo(player *sugoroku.Player, tile *sugoroku.Tile, effect sugoroku.QuizEffect) error {
@@ -48,7 +48,7 @@ func (gm *GameManager) sendQuizInfo(player *sugoroku.Player, tile *sugoroku.Tile
 			"quizData": quizData,
 		},
 	}
-	return gm.hub.SendToPlayer(player.GetID(), event)
+	return gm.hub.SendToPlayer(player.Id, event)
 }
 
 func (gm *GameManager) sendGambleRequire(player *sugoroku.Player, tile *sugoroku.Tile) error {
@@ -60,7 +60,7 @@ func (gm *GameManager) sendGambleRequire(player *sugoroku.Player, tile *sugoroku
 			"referenceValue": baseValue,
 		},
 	}
-	return gm.hub.SendToPlayer(player.GetID(), event)
+	return gm.hub.SendToPlayer(player.Id, event)
 }
 
 func (gm *GameManager) sendGambleResult(playerID string, payload map[string]interface{}) {

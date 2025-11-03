@@ -12,12 +12,12 @@ func TestPlayer_Money(t *testing.T) {
 	// Test Profit
 	err := player.Profit(100)
 	assert.NoError(t, err)
-	assert.Equal(t, 100, player.money)
+	assert.Equal(t, 100, player.Money)
 
 	// Test Loss
 	err = player.Loss(30)
 	assert.NoError(t, err)
-	assert.Equal(t, 70, player.money)
+	assert.Equal(t, 70, player.Money)
 
 	// Test invalid amounts
 	err = player.Profit(-10)
@@ -31,6 +31,6 @@ func TestPlayer_Getters(t *testing.T) {
 	tile := &Tile{id: 1}
 	player := NewPlayer("test_id", tile)
 
-	assert.Equal(t, "test_id", player.GetID())
-	assert.Equal(t, tile, player.GetPosition())
+	assert.Equal(t, "test_id", player.Id)
+	assert.Equal(t, tile, player.Position)
 }

@@ -148,7 +148,7 @@ func (e BranchEffect) Apply(p *Player, g *Game, choice any) error {
 
 	// 選択肢が現在の分岐マスの次のタイルとして有効か検証する
 	isValidChoice := false
-	for _, nextTile := range p.GetPosition().nexts {
+	for _, nextTile := range p.Position.nexts {
 		if nextTile.GetID() == chosenTileID {
 			isValidChoice = true
 			break
@@ -166,7 +166,7 @@ func (e BranchEffect) Apply(p *Player, g *Game, choice any) error {
 		return errors.New("chosen tile does not exist")
 	}
 
-	p.position = nextTile
+	p.Position = nextTile
 	return nil
 }
 
@@ -187,7 +187,7 @@ func (e OverallEffect) Apply(p *Player, g *Game, choice any) error {
 	//自分以外のプレイヤーを取得する
 	otherPlayers := make([]*Player, 0, len(allPlayers)-1)
 	for _, player := range allPlayers {
-		if player.id != p.id {
+		if player.Id != p.Id {
 			otherPlayers = append(otherPlayers, player)
 		}
 	}
@@ -273,13 +273,13 @@ func (e ConditionalEffect) Apply(p *Player, g *Game, choice any) error {
 	var conditionMet bool
 	switch e.Condition {
 	case "isMarried":
-		conditionMet = p.GetIsMarried()
+		conditionMet = p.IsMarried
 	case "hasChildren":
-		conditionMet = p.GetHasChildren()
+		conditionMet = p.HasChildren
 	case "isProfessor":
-		conditionMet = p.GetJob() == JobProfessor
+		conditionMet = p.Job == JobProfessor
 	case "isLecturer":
-		conditionMet = p.GetJob() == JobLecturer
+		conditionMet = p.Job == JobLecturer
 	default:
 		return fmt.Errorf("unknown condition: %s", e.Condition)
 	}

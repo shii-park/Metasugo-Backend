@@ -102,11 +102,11 @@ func (g *Game) GetNeighbors(p *Player) []*Player { // 計算量がプレイヤ�
 	targetTiles := []*Tile{}
 	targetPlayers := []*Player{}
 
-	targetTiles = append(targetTiles, p.position.prevs...)
-	targetTiles = append(targetTiles, p.position.nexts...)
+	targetTiles = append(targetTiles, p.Position.prevs...)
+	targetTiles = append(targetTiles, p.Position.nexts...)
 
-	if p.position != nil {
-		targetTiles = append(targetTiles, p.position)
+	if p.Position != nil {
+		targetTiles = append(targetTiles, p.Position)
 	}
 
 	if len(targetTiles) == 0 {
@@ -114,11 +114,11 @@ func (g *Game) GetNeighbors(p *Player) []*Player { // 計算量がプレイヤ�
 	}
 
 	for _, Player := range g.GetAllPlayers() {
-		if p.id == Player.id {
+		if p.Id == Player.Id {
 			continue
 		}
 		for _, tile := range targetTiles {
-			if Player.position == tile {
+			if Player.Position == tile {
 				targetPlayers = append(targetPlayers, Player)
 				break
 			}
