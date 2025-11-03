@@ -58,3 +58,27 @@ func TestPlayer_ChangeChildren(t *testing.T) {
 	player.changeChildren(-1)
 	assert.Equal(t, 1, player.HasChildren)
 }
+
+func TestPlayer_Children(t *testing.T) {
+	player := NewPlayer("test", nil)
+
+	assert.Equal(t, 0, player.GetChildren())
+
+	player.haveChild()
+	assert.Equal(t, 1, player.GetChildren())
+
+	player.haveChild()
+	assert.Equal(t, 2, player.GetChildren())
+}
+
+func TestPlayer_ChangeChildren(t *testing.T) {
+	player := NewPlayer("test", nil)
+
+	assert.Equal(t, 0, player.GetChildren())
+
+	player.changeChildren(2)
+	assert.Equal(t, 2, player.GetChildren())
+
+	player.changeChildren(-1)
+	assert.Equal(t, 1, player.GetChildren())
+}

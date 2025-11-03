@@ -1,14 +1,202 @@
 [
     {
-    "id": 1,
-    "question": "日本の首都はどこですか？",
-    "options": [
-        "東京",  
-        "大阪",  
-        "京都",  
-        "福岡"   
-    ],
-    "answerIndex": 0 ,
-    "answer_description": "日本の首都は東京です!"
+        "id": 1,
+        "question": "この展示の名前は？",
+        "options": [
+            "細野谷記念館",
+            "太屋岡記念館"
+        ],
+        "answerIndex": 0 ,
+        "answer_description": "細野谷先生という架空の先生をテーマにした記念館です！"
+    },
+    {
+        "id": 2,
+        "question": "今あなたがいる棟は何号館？",
+        "options": [
+            "4号館",
+            "8号館"
+        ],
+        "answerIndex": 0 ,
+        "answer_description": "4号館です！どういう数え方なんだ？"
+    },
+    {
+        "id": 3,
+        "question": "北九州高専の校長先生の名前は？",
+        "options": [
+            "両山校長",
+            "片山校長"
+        ],
+        "answerIndex": 1 ,
+        "answer_description": "両山校長...すごい山だなぁ"
+    },
+    {
+        "id": 4,
+        "question": "高専祭のビンゴくじ！1日目は何時まで受付してる？",
+        "options": [
+            "17:00",
+            "14:00"
+        ],
+        "answerIndex": 1,
+        "answer_description": "時間は間違えないように！"
+    },
+    {
+        "id": 5,
+        "question": "北九州高専の郵便番号はどっち？",
+        "options": [
+            "802-0985",
+            "820-9058"
+        ],
+        "answerIndex": 0 ,
+        "answer_description": "言われてもあんまりピンとこないです"
+    },
+    {
+        "id": 6,
+        "question": "北九州高専は何年生で卒業？（専攻科を除く）",
+        "options": [
+            "3年生",
+            "5年生"
+        ],
+        "answerIndex": 1,
+        "answer_description": "最大で10年間過ごせます"
+    },
+    {
+        "id": 7,
+        "question": "高専祭のグッズ、Tシャツは何円？",
+        "options": [
+            "2000円",
+            "3500円"
+        ],
+        "answerIndex": 0 ,
+        "answer_description": "やすいです、めちゃくちゃ"
+    },
+    {
+        "id": 8,
+        "question": "今年の高専祭のキャッチコピーは？",
+        "options": [
+            "カルチャー",
+            "文化"
+        ],
+        "answerIndex": 0 ,
+        "answer_description": "高専の「文化」を見せつけてやります"
+    },
+    {
+        "id": 9,
+        "question": "「I」コースは、何コース？",
+        "options": [
+            "電気電子コース",
+            "情報システムコース"
+        ],
+        "answerIndex": 1,
+        "answer_description": "Infomation"
+    },
+    {
+        "id": 10,
+        "question": "製鉄所で鉄を生産する時に発生する、副産物は何？(ヒント：パンフレット39ページ)",
+        "options": [
+            "スラグ",
+            "プラグ"
+        ],
+        "answerIndex": 0 ,
+        "answer_description": "身の回りにヒントは眠ってるんだ"
+    },
+    {
+        "id": 11,
+        "question": "2025年の高専祭は、第何回目？",
+        "options": [
+            "第59回",
+            "第61回"
+        ],
+        "answerIndex": 0 ,
+        "answer_description": "今年で高専は60周年です！"
+    },
+    {
+        "id": 12,
+        "question": "北九州高専(略してNitKit)は今年で何周年？",
+        "options": [
+            "60周年",
+            "70周年"
+        ],
+        "answerIndex": 0 ,
+        "answer_description": "今年で高専祭は59回目！"
+    },
+    {
+        "id": 13,
+        "question": "高専の最寄りのコンビニは？",
+        "options": [
+            "ローソン",
+            "ファミリーマート"
+        ],
+        "answerIndex": 1,
+        "answer_description": "ファミチキが売ってるのでファミマです"
+    },
+    {
+        "id": 14,
+        "question": "一年生は一号館の何階で展示をしている？",
+        "options": [
+            "4階",
+            "3階"
+        ],
+        "answerIndex": 0 ,
+        "answer_description": "登るのめっちゃ大変"
+    },
+    {
+        "id": 15,
+        "question": "高専祭は何時から始まる？",
+        "options": [
+            "9:35",
+            "9:15"
+        ],
+        "answerIndex": 1,
+        "answer_description": "くいこ〜（915）で覚えてください"
+    },
+    {
+        "id": 16,
+        "question": "このすごろくを展示しているのは何コース？",
+        "options": [
+            "知能ロボットコース",
+            "情報システムコース"
+        ],
+        "answerIndex": 1,
+        "answer_description": "情報棟にあるから情報コース...とは限らないんですね"
+    },
+    {
+        "id": 17,
+        "question": "今日は「志井公園駅から小倉方面」に、電車で帰ろうかなぁ。16時台の電車は何分にくる？",
+        "options": [
+            "16:27",
+            "16:34"
+        ],
+        "answerIndex": 1,
+        "answer_description": "高専生はみんなこれを把握しています"
+    },
+    {
+        "id": 18,
+        "question": "ブラスバンド（吹奏楽部）のステージで演奏される曲は？",
+        "options": [
+            "宝島",
+            "情熱大陸"
+        ],
+        "answerIndex": 0 ,
+        "answer_description": "丁寧、丁寧、丁寧に連れて行きます"
+    },
+    {
+        "id": 19,
+        "question": "高専祭の立役者！文化局長の名前はズバリ？",
+        "options": [
+            "藤本日陰氏",
+            "藤本陽向氏"
+        ],
+        "answerIndex": 1,
+        "answer_description": "彼は僕らにとっての太陽です"
+    },
+    {
+        "id": 20,
+        "question": "高専祭で開催されるお笑いの大会のタイトルは？",
+        "options": [
+            "N-1グランプリ",
+            "M-1グランプリ"
+        ],
+        "answerIndex": 0 ,
+        "answer_description": "Nit-Kit-No1グランプリです"
     }
 ]
