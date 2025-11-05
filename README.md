@@ -2,6 +2,10 @@
 
 現実とネット上を交差させながら遊べる「メタバーすごろく」のバックエンドサーバーです。
 
+フロントエンド: https://github.com/shii-park/Metasugo-Frontend
+
+サイト: https://metasugo.vercel.app
+
 ## 主な機能
 
 *   **リアルタイムなゲームプレイ:** WebSocketを使用して、複数のプレイヤーが同時にすごろくゲームをプレイできます。
