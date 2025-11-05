@@ -43,7 +43,7 @@ GoのWebフレームワークである **Gin** をベースに構築されてい
 
 クライアントとサーバー間のリアルタイム通信は、すべてJSON形式のメッセージで行われます。
 
-詳細は [WEBSOCKET_API.md](./WEBSOCKET_API.md) を参照してください。
+詳細は [API.md](./API.md) を参照してください。
 
 ### REST API
 
