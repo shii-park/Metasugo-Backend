@@ -107,18 +107,6 @@ func (e QuizEffect) Apply(p *Player, g *Game, choice any) error {
 	}
 	selectedOptionIndex := int(selectionFloat)
 
-	quizIDFloat, ok := choiceMap["quizID"].(float64)
-	if !ok {
-		return errors.New("quizID not found or is not a number in choice")
-	}
-	quizID := int(quizIDFloat)
-
-	selectionFloat, ok := choiceMap["selection"].(float64)
-	if !ok {
-		return errors.New("selection not found or is not a number in choice")
-	}
-	selectedOptionIndex := int(selectionFloat)
-
 	var targetQuiz *Quiz
 	for i := range quizzes {
 		if quizzes[i].ID == quizID {

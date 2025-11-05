@@ -24,11 +24,6 @@ var (
 	appOnce     sync.Once
 	appErr      error
 
-	// --- Firebase 関連の変数を整理 ---
-	firebaseApp *firebase.App
-	appOnce     sync.Once
-	appErr      error
-
 	firestoreClient *firestore.Client
 	firestoreOnce   sync.Once
 	firestoreErr    error
